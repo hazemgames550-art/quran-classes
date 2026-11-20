@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تحفيظ القرآن الكريم أونلاين</title>
+<meta name="description" content="دروس تحفيظ القرآن الكريم أونلاين للسيدات والأطفال - احجزي ميعادك الآن">
+<meta name="theme-color" content="#070707">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container">
+    <a class="brand" href="/" style="text-decoration:none"><span id="brandIcon"></span><span id="brandName">تحفيظ القرآن الكريم</span></a>
+    <nav class="nav">
+      <a href="#features">المميزات</a>
+      <a href="#prices">الأسعار</a>
+      <a href="#how">إزاي أحجز</a>
+      <a href="#book" class="keep">احجز</a>
+      <a href="#track" class="keep">حجزي</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- ================= الهيرو ================= -->
+<section class="hero">
+  <div class="container">
+    <svg class="hero-art" viewBox="0 0 400 300" role="img" aria-label="مصحف مفتوح بنور ذهبي">
+      <defs>
+        <radialGradient id="g1" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stop-color="#f3dd8c" stop-opacity=".55"/>
+          <stop offset="60%" stop-color="#d4af37" stop-opacity=".12"/>
+          <stop offset="100%" stop-color="#d4af37" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#241e0d"/><stop offset="1" stop-color="#0d0c08"/>
+        </linearGradient>
+        <linearGradient id="gd" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#f7e7a1"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#9c7a1c"/>
+        </linearGradient>
+      </defs>
+      <circle class="glow" cx="200" cy="150" r="145" fill="url(#g1)"/>
+      <g class="spin" fill="none" stroke="#d4af37" stroke-opacity=".55" stroke-width="1">
+        <g transform="translate(200 150)">
+          <rect x="-112" y="-112" width="224" height="224"/>
+          <rect x="-112" y="-112" width="224" height="224" transform="rotate(45)"/>
+          <rect x="-112" y="-112" width="224" height="224" transform="rotate(22.5)" stroke-opacity=".3"/>
+          <rect x="-112" y="-112" width="224" height="224" transform="rotate(67.5)" stroke-opacity=".3"/>
+        </g>
+      </g>
+      <g class="spinr" fill="none" stroke="#f3dd8c" stroke-opacity=".35" stroke-width="1">
+        <circle cx="200" cy="150" r="128" stroke-dasharray="2 7"/>
+        <circle cx="200" cy="150" r="140" stroke-dasharray="14 10"/>
+      </g>
+      <g class="book">
+        <!-- ظل -->
+        <ellipse cx="200" cy="232" rx="95" ry="7" fill="#000" opacity=".5"/>
+        <!-- الصفحة اليمنى -->
+        <path d="M200 215 C238 196 288 196 328 206 L328 104 C288 94 238 94 200 114 Z" fill="url(#pg)" stroke="url(#gd)" stroke-width="2.2"/>
+        <!-- الصفحة اليسرى -->
+        <path d="M200 215 C162 196 112 196 72 206 L72 104 C112 94 162 94 200 114 Z" fill="url(#pg)" stroke="url(#gd)" stroke-width="2.2"/>
+        <!-- إطار داخلي -->
+        <path d="M208 200 C240 186 280 186 316 194 L316 116 C280 108 240 108 208 124 Z" fill="none" stroke="#d4af37" stroke-opacity=".5" stroke-width="1"/>
+        <path d="M192 200 C160 186 120 186 84 194 L84 116 C120 108 160 108 192 124 Z" fill="none" stroke="#d4af37" stroke-opacity=".5" stroke-width="1"/>
+        <!-- سطور -->
+        <g stroke="#d4af37" stroke-opacity=".55" stroke-width="1.4" stroke-linecap="round" fill="none">
+          <path d="M222 136 C246 128 276 128 302 134"/><path d="M222 148 C246 140 276 140 302 146"/>
+          <path d="M222 160 C246 152 276 152 302 158"/><path d="M222 172 C246 164 276 164 302 170"/>
+          <path d="M222 184 C246 176 276 176 302 182"/>
+          <path d="M178 136 C154 128 124 128 98 134"/><path d="M178 148 C154 140 124 140 98 146"/>
+          <path d="M178 160 C154 152 124 152 98 158"/><path d="M178 172 C154 164 124 164 98 170"/>
+          <path d="M178 184 C154 176 124 176 98 182"/>
+        </g>
+        <!-- عمود الكتاب -->
+        <path d="M200 114 L200 215" stroke="url(#gd)" stroke-width="2.5"/>
+        <circle cx="200" cy="150" r="7" fill="#0d0c08" stroke="url(#gd)" stroke-width="2"/>
+        <circle cx="200" cy="150" r="2.6" fill="url(#gd)"/>
+        <!-- أشعة -->
+        <g stroke="#f3dd8c" stroke-linecap="round" opacity=".5">
+          <path d="M200 98 L200 62" stroke-width="2"/><path d="M178 102 L164 72" stroke-width="1.5"/><path d="M222 102 L236 72" stroke-width="1.5"/>
+          <path d="M158 110 L132 88" stroke-width="1.2"/><path d="M242 110 L268 88" stroke-width="1.2"/>
+        </g>
+      </g>
+    </svg>
+
+    <div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+    <h1 id="heroTitle">تحفيظ القرآن الكريم</h1>
+    <div class="teacher" id="heroTeacher"></div>
+    <p class="tagline" id="heroTagline">دروس تحفيظ القرآن الكريم أونلاين للسيدات والأطفال</p>
+    <div class="hero-cta">
+      <a class="btn btn-gold" href="#book">احجز ميعادك الآن</a>
+      <a class="btn" href="#track">تابع حجزك</a>
+    </div>
+    <div class="notice-banner hidden" id="closedBanner">باب الحجز هيتفتح قريبًا إن شاء الله، ابقى تابعنا.</div>
+    <div class="verse">﴿ وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا ﴾<small>سورة المزمل - الآية 4</small></div>
+  </div>
+</section>
+
+<!-- ================= المميزات ================= -->
+<section class="block" id="features">
+  <div class="container">
+    <div class="sec-title reveal"><h2>لماذا هذه الدروس؟</h2><div class="orn">✦</div></div>
+    <div class="grid g3">
+      <div class="card feature reveal"><div class="ic">🕌</div><h3>للسيدات والأطفال فقط</h3><p>بيئة هادئة ومخصصة، وحصص بخصوصية كاملة وروابط سرية لكل حجز.</p></div>
+      <div class="card feature reveal"><div class="ic">👤</div><h3>فردي أو جماعي</h3><p>اختاري حصة فردية بتركيز كامل، أو مجموعة صغيرة بسعر أقل.</p></div>
+      <div class="card feature reveal"><div class="ic">📖</div><h3>اختاري اللي تحفظيه</h3><p>القرآن كامل، أو أجزاء معينة، أو من جزء لجزء، أو سور محددة.</p></div>
+      <div class="card feature reveal"><div class="ic">🌍</div><h3>من أي مكان</h3><p>الحصص أونلاين، والمواعيد بتظهر لك بتوقيتك لو بره مصر.</p></div>
+      <div class="card feature reveal"><div class="ic">📝</div><h3>متابعة التقدم</h3><p>بعد كل حصة بيتسجل وصلتي لفين في الحفظ وتشوفيه في صفحة حجزك.</p></div>
+      <div class="card feature reveal"><div class="ic">💳</div><h3>دفع أونلاين سهل</h3><p>انستا باي أو فودافون كاش، وترفعي صورة التحويل من الموبايل.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= الأسعار ================= -->
+<section class="block" id="prices">
+  <div class="container">
+    <div class="sec-title reveal"><h2>الأسعار</h2><div class="orn">✦</div></div>
+    <div class="grid g3" id="priceGrid"></div>
+    <p id="discountNote" class="reveal" style="text-align:center;color:var(--gold-light);margin-top:16px"></p>
+  </div>
+</section>
+
+<!-- ================= إزاي أحجز ================= -->
+<section class="block" id="how">
+  <div class="container">
+    <div class="sec-title reveal"><h2>إزاي أحجز؟</h2><div class="orn">✦</div></div>
+    <div class="grid g3 steps-how">
+      <div class="card reveal"><h3>سجلي بياناتك</h3><p>الاسم ورقم الواتساب، وللأطفال بيانات ولي الأمر.</p></div>
+      <div class="card reveal"><h3>حددي هدفك</h3><p>اختاري الأجزاء اللي عايزة تحفظيها ومستواك الحالي.</p></div>
+      <div class="card reveal"><h3>اختاري المواعيد</h3><p>مواعيد المعلم الفاضية بتظهر مباشرة، اختاري اللي يناسبك.</p></div>
+      <div class="card reveal"><h3>حوّلي وأرسلي الإيصال</h3><p>بعد التأكيد بتستلمي كود الحجز، وفي ميعاد الحصة بتدخلي بضغطة زرار.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= الحجز ================= -->
+<section class="block" id="book">
+  <div class="container">
+    <div class="sec-title reveal"><h2>احجزي ميعادك</h2><div class="orn">✦</div></div>
+    <div class="wizard card" id="wizard">
+      <div id="wizContent"><p style="text-align:center;color:var(--muted)">جاري التحميل…</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= متابعة الحجز ================= -->
+<section class="block" id="track">
+  <div class="container">
+    <div class="sec-title reveal"><h2>تابعي حجزك</h2><div class="orn">✦</div></div>
+    <div class="card reveal" style="max-width:520px;margin-inline:auto;text-align:center">
+      <p style="color:var(--muted);margin-bottom:12px">اكتبي كود الحجز اللي وصلك بعد الحجز علشان تدخلي الحصة أو ترفعي الإيصال.</p>
+      <form id="trackForm" style="display:flex;gap:8px">
+        <input type="text" id="trackCode" class="ltr" placeholder="مثال: K7M2QX" maxlength="10" autocomplete="off" style="text-transform:uppercase;letter-spacing:3px;text-align:center">
+        <button class="btn btn-gold" type="submit">افتح</button>
+      </form>
+      <div id="myCodes" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="hadith">«خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ»</div>
+    <div id="footWa"></div>
+    <div style="margin-top:6px">جميع الحقوق محفوظة © <span id="footName"></span></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+const S = {
+  settings: null, step: 1, kind: "woman", name: "", age: "", guardian: "", phone: "", country: "",
+  mode: "all", juz: new Set(), from: 1, to: 30, surahs: "", lessonType: "new", canRead: "yes", memorized: "", notes: "",
+  sessionType: "individual", picks: new Map(), slots: [], method: "instapay", busy: false,
+};
+const STEPS = ["بياناتك", "القرآن", "المواعيد", "التأكيد"];
+const wiz = $("#wizContent");
+
+function applySettings(st) {
+  S.settings = st;
+  document.title = st.siteName + " - حجز دروس تحفيظ القرآن أونلاين";
+  $("#brandName").textContent = st.siteName;
+  $("#brandIcon").innerHTML = STAR_SVG;
+  $("#heroTitle").textContent = st.siteName;
+  $("#heroTeacher").textContent = st.teacherName || "";
+  $("#heroTagline").textContent = st.tagline;
+  $("#footName").textContent = st.siteName;
+  $("#closedBanner").classList.toggle("hidden", st.bookingOpen);
+  if (st.whatsapp) $("#footWa").innerHTML = `<a class="btn btn-wa btn-small" href="${waLink(st.whatsapp, "السلام عليكم، عندي استفسار عن دروس التحفيظ")}" target="_blank" rel="noopener">تواصل معنا على واتساب</a>`;
+  renderPrices();
+}
+
+function priceText(n, st) {
+  if (!n) return st.bookingOpen ? "مجاني" : "—";
+  return `${Number(n).toLocaleString(LOCALE)} <small>${esc(st.currency)} / الحصة</small>`;
+}
+function renderPrices() {
+  const st = S.settings;
+  let h = "";
+  h += `<div class="card price-card featured reveal in"><div class="ribbon">الأشهر</div><h3>حصة فردية</h3><div class="amount">${priceText(st.priceIndividual, st)}</div><div class="meta">${st.sessionMinutes} دقيقة · معلمك لوحدك</div></div>`;
+  h += `<div class="card price-card reveal in"><h3>حصة جماعية</h3><div class="amount">${priceText(st.priceGroup, st)}</div><div class="meta">${st.groupMinutes} دقيقة · مجموعة صغيرة</div></div>`;
+  if (st.trialEnabled) h += `<div class="card price-card reveal in"><h3>حصة تجريبية</h3><div class="amount">${st.trialPrice ? priceText(st.trialPrice, st) : "مجانًا"}</div><div class="meta">${esc(st.trialNote || "جربي أول حصة وبعدين قرري")}</div></div>`;
+  $("#priceGrid").innerHTML = h;
+  $("#discountNote").textContent = st.discountRules.length
+    ? "🎁 " + st.discountRules.map((r) => `خصم ${r.pct}% عند حجز ${r.min} حصص أو أكتر`).join(" · ")
+    : "";
+}
+
+// ===== الأسعار في الحجز =====
+function calc() {
+  const st = S.settings;
+  const picks = [...S.picks.values()];
+  if (S.sessionType === "trial") { const t = Number(st.trialPrice) || 0; return { count: picks.length, subtotal: t, pct: 0, total: t }; }
+  const per = picks.map((p) => (p.kind === "group" ? st.priceGroup : st.priceIndividual));
+  const subtotal = per.reduce((a, b) => a + b, 0);
+  let pct = 0;
+  for (const r of st.discountRules) if (picks.length >= r.min && r.pct > pct) pct = r.pct;
+  return { count: picks.length, subtotal, pct, total: Math.round((subtotal * (100 - pct)) / 100) };
+}
+
+// ===== العرض =====
+function stepper() {
+  return `<div class="stepper">${STEPS.map((t, i) => `<div class="st ${i + 1 === S.step ? "on" : i + 1 < S.step ? "done" : ""}"><div class="dot">${i + 1 < S.step ? "✓" : i + 1}</div>${t}</div>`).join("")}</div>`;
+}
+
+function render(scroll = false) {
+  const st = S.settings;
+  if (!st.bookingOpen) {
+    wiz.innerHTML = `<div style="text-align:center;padding:20px"><div style="font-size:2.4rem">🕋</div><h3 style="font-family:Amiri,serif;color:var(--gold-light);font-size:1.5rem">باب الحجز مقفول حاليًا</h3><p style="color:var(--muted)">هيتفتح قريبًا إن شاء الله.${st.whatsapp ? " تقدري تتواصلي معانا على الواتساب." : ""}</p></div>`;
+    return;
+  }
+  if (!st.hasIndividual && !st.hasGroup) {
+    wiz.innerHTML = `<div style="text-align:center;padding:20px"><h3 style="color:var(--gold-light)">المواعيد لسه ما اتحددتش</h3><p style="color:var(--muted)">هتظهر المواعيد هنا قريبًا.</p></div>`;
+    return;
+  }
+  wiz.innerHTML = stepper() + `<div class="stepview" id="stepBody"></div><div class="err" id="err"></div>`;
+  [null, step1, step2, step3, step4][S.step]();
+  if (scroll) window.scrollTo({ top: $("#book").offsetTop - 70, behavior: "smooth" });
+}
+function setErr(m) { const e = $("#err"); if (e) e.textContent = m || ""; }
+function navButtons(nextLabel = "التالي ←", showBack = true) {
+  return `<div class="nav-btns">${showBack && S.step > 1 ? `<button class="btn" id="bBack">→ رجوع</button>` : "<span></span>"}<button class="btn btn-gold" id="bNext">${nextLabel}</button></div>`;
+}
+function go(n) { S.step = n; render(true); }
+
+// ----- الخطوة 1: البيانات -----
+function step1() {
+  const child = S.kind === "child";
+  $("#stepBody").innerHTML = `
+    <div class="choice-cards" style="margin-bottom:18px">
+      <div class="choice ${!child ? "on" : ""}" data-kind="woman"><div class="big">👩</div><b>سيدة</b><small>التسجيل لنفسي</small></div>
+      <div class="choice ${child ? "on" : ""}" data-kind="child"><div class="big">🧒</div><b>طفل / طفلة</b><small>التسجيل لابني أو بنتي</small></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>${child ? "اسم الطفل / الطفلة" : "الاسم"}</label><input type="text" id="fName" value="${esc(S.name)}" maxlength="80" autocomplete="name"></div>
+      <div class="field"><label>${child ? "السن" : "السن (اختياري)"}</label><input type="number" id="fAge" value="${esc(S.age)}" min="3" max="90"></div>
+    </div>
+    ${child ? `<div class="field"><label>اسم ولي الأمر</label><input type="text" id="fGuardian" value="${esc(S.guardian)}" maxlength="80"></div>` : ""}
+    <div class="row">
+      <div class="field"><label>${child ? "رقم واتساب ولي الأمر" : "رقم الواتساب"}</label><input type="tel" id="fPhone" value="${esc(S.phone)}" placeholder="01012345678" autocomplete="tel"><div class="hint">لو خارج مصر اكتب الرقم بكود الدولة، مثال: +966501234567</div></div>
+      <div class="field"><label>الدولة (اختياري)</label><input type="text" id="fCountry" value="${esc(S.country)}" maxlength="40" placeholder="مصر"></div>
+    </div>
+    ${navButtons("التالي ←", false)}`;
+  $$("[data-kind]").forEach((el) => el.onclick = () => { collect1(); S.kind = el.dataset.kind; step1(); });
+  $("#bNext").onclick = () => {
+    collect1();
+    if (S.name.trim().length < 2) return setErr("اكتبي الاسم");
+    if (child) { if (!S.age) return setErr("اكتبي سن الطفل"); if (S.guardian.trim().length < 2) return setErr("اكتبي اسم ولي الأمر"); }
+    const p = normalizePhone(S.phone);
+    if (p.length < 8 || p.length > 15) return setErr("رقم الواتساب غير صحيح");
+    go(2);
+  };
+}
+function collect1() {
+  if (!$("#fName")) return;
+  S.name = $("#fName").value; S.age = $("#fAge").value; S.phone = $("#fPhone").value; S.country = $("#fCountry").value;
+  if ($("#fGuardian")) S.guardian = $("#fGuardian").value;
+}
+
+// ----- الخطوة 2: القرآن -----
+function step2() {
+  const modes = [["all", "📖", "القرآن كامل", "حفظ المصحف كله"], ["juz", "🔢", "أجزاء محددة", "اختاري الأجزاء بنفسك"], ["range", "↔️", "من جزء إلى جزء", "نطاق متصل"], ["surahs", "✍️", "سور معينة", "اكتبي أسماء السور"]];
+  $("#stepBody").innerHTML = `
+    <div class="field"><label>إيه اللي عايزة تحفظيه؟</label>
+      <div class="choice-cards">${modes.map(([k, ic, t, d]) => `<div class="choice ${S.mode === k ? "on" : ""}" data-mode="${k}"><div class="big">${ic}</div><b>${t}</b><small>${d}</small></div>`).join("")}</div>
+    </div>
+    <div id="modeBox" class="field"></div>
+    <div class="row">
+      <div class="field"><label>نوع الحصة</label><select id="fLesson">${Object.entries(LESSON_TYPES).map(([k, v]) => `<option value="${k}" ${S.lessonType === k ? "selected" : ""}>${v}</option>`).join("")}</select></div>
+      <div class="field"><label>مستوى القراءة</label><select id="fRead">${Object.entries(CAN_READ).map(([k, v]) => `<option value="${k}" ${S.canRead === k ? "selected" : ""}>${v}</option>`).join("")}</select></div>
+    </div>
+    <div class="field"><label>محفوظ من قبل (اختياري)</label><input type="text" id="fMem" value="${esc(S.memorized)}" maxlength="120" placeholder="مثال: جزء عم وسورة البقرة"></div>
+    <div class="field"><label>ملاحظات (اختياري)</label><textarea id="fNotes" maxlength="500">${esc(S.notes)}</textarea></div>
+    ${navButtons()}`;
+  drawModeBox();
+  $$("[data-mode]").forEach((el) => el.onclick = () => { collect2(); S.mode = el.dataset.mode; step2(); });
+  $("#bBack").onclick = () => { collect2(); go(1); };
+  $("#bNext").onclick = () => {
+    collect2();
+    if (S.mode === "juz" && !S.juz.size) return setErr("اختاري جزء واحد على الأقل");
+    if (S.mode === "range" && S.from > S.to) return setErr("الجزء الأول لازم يكون قبل الجزء الأخير");
+    if (S.mode === "surahs" && !S.surahs.trim()) return setErr("اكتبي السور اللي عايزاها");
+    go(3);
+  };
+}
+function drawModeBox() {
+  const b = $("#modeBox");
+  if (S.mode === "all") { b.innerHTML = `<div class="hint" style="text-align:center">هنبدأ بمستواك ونمشي معاك خطوة خطوة لحد ختم المصحف بإذن الله.</div>`; return; }
+  if (S.mode === "juz") {
+    b.innerHTML = `<label>اضغطي على الأجزاء المطلوبة</label><div class="juz-grid">${Array.from({ length: 30 }, (_, i) => `<div class="juz ${S.juz.has(i + 1) ? "on" : ""}" data-j="${i + 1}" title="الجزء ${JUZ_NAMES[i]}">${i + 1}</div>`).join("")}</div>`;
+    $$("[data-j]").forEach((el) => el.onclick = () => { const j = +el.dataset.j; S.juz.has(j) ? S.juz.delete(j) : S.juz.add(j); el.classList.toggle("on"); });
+    return;
+  }
+  if (S.mode === "range") {
+    const opts = (sel) => Array.from({ length: 30 }, (_, i) => `<option value="${i + 1}" ${sel === i + 1 ? "selected" : ""}>الجزء ${JUZ_NAMES[i]} (${i + 1})</option>`).join("");
+    b.innerHTML = `<div class="row"><div><label>من</label><select id="fFrom">${opts(S.from)}</select></div><div><label>إلى</label><select id="fTo">${opts(S.to)}</select></div></div>`;
+    return;
+  }
+  b.innerHTML = `<label>السور</label><input type="text" id="fSurahs" value="${esc(S.surahs)}" maxlength="200" placeholder="مثال: الملك، القلم، الحاقة"><div class="hint">اكتبي أسماء السور مفصولة بفاصلة.</div>`;
+}
+function collect2() {
+  if (!$("#fLesson")) return;
+  S.lessonType = $("#fLesson").value; S.canRead = $("#fRead").value; S.memorized = $("#fMem").value; S.notes = $("#fNotes").value;
+  if ($("#fFrom")) { S.from = +$("#fFrom").value; S.to = +$("#fTo").value; }
+  if ($("#fSurahs")) S.surahs = $("#fSurahs").value;
+}
+
+// ----- الخطوة 3: المواعيد -----
+async function loadSlots() {
+  const r = await api("/api/slots");
+  S.slots = r.slots;
+}
+function typesAvailable() {
+  const st = S.settings, t = [];
+  if (st.hasIndividual) t.push(["individual", "حصة فردية"]);
+  if (st.hasGroup) t.push(["group", "حصة جماعية"]);
+  if (st.trialEnabled && st.hasIndividual) t.push(["trial", "حصة تجريبية"]);
+  return t;
+}
+async function step3() {
+  const types = typesAvailable();
+  if (!types.some(([k]) => k === S.sessionType)) S.sessionType = types[0][0];
+  $("#stepBody").innerHTML = `
+    <div class="tabs">${types.map(([k, l]) => `<button class="tab ${S.sessionType === k ? "on" : ""}" data-type="${k}">${l}</button>`).join("")}</div>
+    <p class="hint" id="typeHint" style="color:var(--muted);margin-bottom:10px"></p>
+    <div id="slotsBox"><p style="color:var(--muted)">جاري تحميل المواعيد…</p></div>
+    <div class="summary" id="sum3" style="margin-top:16px"></div>
+    ${navButtons()}`;
+  $$("[data-type]").forEach((el) => el.onclick = () => { if (S.sessionType !== el.dataset.type) { S.sessionType = el.dataset.type; S.picks.clear(); } step3(); });
+  $("#bBack").onclick = () => go(2);
+  $("#bNext").onclick = () => { if (!S.picks.size) return setErr("اختاري ميعاد واحد على الأقل"); go(4); };
+  const st = S.settings;
+  $("#typeHint").textContent = S.sessionType === "group"
+    ? `حصة جماعية مع مجموعة صغيرة · ${st.groupMinutes} دقيقة`
+    : S.sessionType === "trial" ? `${st.trialNote || "حصة تجريبية واحدة"} · ${st.sessionMinutes} دقيقة` : `حصة فردية · ${st.sessionMinutes} دقيقة · تقدري تختاري أكتر من ميعاد (حتى ${st.maxSessions})`;
+  try { await loadSlots(); } catch (e) { $("#slotsBox").innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  drawSlots();
+}
+function drawSlots() {
+  const kind = S.sessionType === "group" ? "group" : "individual";
+  const list = S.slots.filter((s) => s.kind === kind);
+  // الحاجات اللي اتحجزت من وقت ما اختارت نشيلها
+  for (const [k, p] of S.picks) { const s = S.slots.find((x) => x.kind === p.kind && x.start === p.start); if (!s || s.free < 1) S.picks.delete(k); }
+  if (!list.length) { $("#slotsBox").innerHTML = `<p style="color:var(--muted);text-align:center;padding:20px">مفيش مواعيد متاحة حاليًا من النوع ده، جربي نوع تاني أو ارجعي بعدين.</p>`; updateSum3(); return; }
+  const byDay = new Map();
+  for (const s of list) { const k = dayKey(s.start); if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(s); }
+  let h = "";
+  for (const [, arr] of byDay) {
+    h += `<div class="day"><h4>${fmtDay(arr[0].start)}</h4><div class="chips">` + arr.map((s) => {
+      const key = s.kind + s.start, full = s.free < 1, on = S.picks.has(key);
+      const hint = localHint(s.start);
+      return `<div class="slot ${on ? "on" : ""} ${full ? "full" : ""}" data-key="${key}" data-start="${s.start}" data-kind="${s.kind}">${fmtTime(s.start)}${kind === "group" && !full ? `<small>متبقي ${s.free}</small>` : ""}${hint ? `<small>${esc(hint)}</small>` : ""}</div>`;
+    }).join("") + `</div></div>`;
+  }
+  $("#slotsBox").innerHTML = (tzOffsetNow() ? `<p class="hint" style="color:var(--muted);margin-bottom:8px">المواعيد بتوقيت مصر (القاهرة)، وتحت كل ميعاد توقيتك المحلي.</p>` : `<p class="hint" style="color:var(--muted);margin-bottom:8px">كل المواعيد بتوقيت مصر (القاهرة).</p>`) + h;
+  $$(".slot:not(.full)").forEach((el) => el.onclick = () => {
+    const key = el.dataset.key;
+    if (S.picks.has(key)) S.picks.delete(key);
+    else {
+      if (S.sessionType === "trial") S.picks.clear();
+      else if (S.picks.size >= S.settings.maxSessions) return toast(`أقصى عدد ${S.settings.maxSessions} حصص في الحجز الواحد`, true);
+      S.picks.set(key, { start: +el.dataset.start, kind: el.dataset.kind });
+    }
+    $$(".slot").forEach((x) => x.classList.toggle("on", S.picks.has(x.dataset.key)));
+    setErr(""); updateSum3();
+  });
+  updateSum3();
+}
+function updateSum3() {
+  const c = calc(), st = S.settings;
+  $("#sum3").innerHTML = c.count
+    ? `<div class="line"><span>عدد الحصص</span><b>${c.count}</b></div>${c.pct ? `<div class="line"><span>خصم ${c.pct}%</span><b>- ${money(c.subtotal - c.total, st.currency)}</b></div>` : ""}<div class="line total"><span>الإجمالي</span><b>${c.total ? money(c.total, st.currency) : "مجانًا"}</b></div>`
+    : `<span style="color:var(--muted)">لسه ما اخترتيش ميعاد</span>`;
+}
+
+// ----- الخطوة 4: التأكيد -----
+function step4() {
+  const c = calc(), st = S.settings;
+  const picks = [...S.picks.values()].sort((a, b) => a.start - b.start);
+  $("#stepBody").innerHTML = `
+    <div class="summary">
+      <div class="line"><span>الاسم</span><b>${esc(S.name)}${S.kind === "child" ? " (طفل)" : ""}</b></div>
+      ${S.kind === "child" ? `<div class="line"><span>ولي الأمر</span><b>${esc(S.guardian)}</b></div>` : ""}
+      <div class="line"><span>واتساب</span><b dir="ltr">${esc(S.phone)}</b></div>
+      <div class="line"><span>المطلوب</span><b>${esc(quranText(buildQuran()))}</b></div>
+      <div class="line"><span>نوع الحصة</span><b>${esc(LESSON_TYPES[S.lessonType])}</b></div>
+      <div style="margin-top:6px;border-top:1px solid var(--line);padding-top:6px"><span style="color:var(--gold-light)">المواعيد (بتوقيت مصر):</span>
+        ${picks.map((p) => `<div class="line"><span>${p.kind === "group" ? "جماعية" : S.sessionType === "trial" ? "تجريبية" : "فردية"}</span><b>${fmtDateTime(p.start)}</b></div>`).join("")}</div>
+      ${c.pct ? `<div class="line"><span>خصم ${c.pct}%</span><b>- ${money(c.subtotal - c.total, st.currency)}</b></div>` : ""}
+      <div class="line total"><span>الإجمالي</span><b>${c.total ? money(c.total, st.currency) : "مجانًا"}</b></div>
+    </div>
+    ${c.total ? `<div class="field" style="margin-top:18px"><label>هتدفعي بإيه؟</label>
+      <div class="choice-cards">
+        ${st.instapay ? `<div class="choice ${S.method === "instapay" ? "on" : ""}" data-m="instapay"><div class="big">🏦</div><b>انستا باي</b></div>` : ""}
+        ${st.vodafone ? `<div class="choice ${S.method === "vodafone" ? "on" : ""}" data-m="vodafone"><div class="big">📱</div><b>فودافون كاش</b></div>` : ""}
+      </div><div class="hint">بعد التأكيد هتظهر لك بيانات التحويل، وترفعي صورة الإيصال. الحجز بيتحفظ لك ${st.holdHours} ساعات لحد ما تدفعي.</div></div>` : `<p class="hint" style="margin-top:12px;text-align:center;color:var(--gold-light)">الحصة دي مجانية، مفيش دفع.</p>`}
+    ${navButtons("تأكيد الحجز ✓")}`;
+  if (c.total && !(S.method === "instapay" ? st.instapay : st.vodafone)) S.method = st.instapay ? "instapay" : "vodafone";
+  $$("[data-m]").forEach((el) => el.onclick = () => { S.method = el.dataset.m; $$("[data-m]").forEach((x) => x.classList.toggle("on", x === el)); });
+  $("#bBack").onclick = () => go(3);
+  $("#bNext").onclick = submit;
+}
+function buildQuran() {
+  if (S.mode === "juz") return { mode: "juz", juz: [...S.juz].sort((a, b) => a - b) };
+  if (S.mode === "range") return { mode: "range", from: S.from, to: S.to };
+  if (S.mode === "surahs") return { mode: "surahs", surahs: S.surahs };
+  return { mode: "all" };
+}
+async function submit() {
+  if (S.busy) return;
+  S.busy = true; $("#bNext").disabled = true; setErr("");
+  try {
+    const r = await api("/api/book", {
+      method: "POST",
+      body: {
+        studentKind: S.kind, name: S.name, age: S.age, guardianName: S.guardian, phone: S.phone, country: S.country, tz: USER_TZ,
+        quran: buildQuran(), lessonType: S.lessonType, canRead: S.canRead, memorized: S.memorized, notes: S.notes,
+        trial: S.sessionType === "trial", method: S.method,
+        sessions: [...S.picks.values()],
+      },
+    });
+    saveCode(r.code);
+    success(r);
+  } catch (e) {
+    setErr(e.message);
+    if (e.status === 409) { S.picks.clear(); toast(e.message, true); setTimeout(() => go(3), 900); }
+    const b = $("#bNext"); if (b) b.disabled = false;
+  } finally { S.busy = false; }
+}
+
+// ----- بعد الحجز -----
+function saveCode(code) {
+  try {
+    const l = JSON.parse(localStorage.getItem("myCodes") || "[]").filter((c) => c !== code);
+    l.unshift(code); localStorage.setItem("myCodes", JSON.stringify(l.slice(0, 5)));
+  } catch {}
+  drawMyCodes();
+}
+function drawMyCodes() {
+  let l = [];
+  try { l = JSON.parse(localStorage.getItem("myCodes") || "[]"); } catch {}
+  $("#myCodes").innerHTML = l.length ? `<div class="hint" style="color:var(--muted)">حجوزاتك الأخيرة على الجهاز ده:</div>` + l.map((c) => `<a class="badge" style="margin:3px;font-size:.95rem;letter-spacing:2px" href="/booking?c=${encodeURIComponent(c)}">${esc(c)}</a>`).join("") : "";
+}
+function success(r) {
+  const st = S.settings, o = r.order, needPay = o.pricing.total > 0;
+  const nums = [];
+  const order = S.method === "vodafone" ? ["vodafone", "instapay"] : ["instapay", "vodafone"];
+  for (const m of order) if (st[m]) nums.push(m);
+  wiz.innerHTML = `
+    <div class="stepview" style="text-align:center">
+      <div style="font-size:2.6rem">✅</div>
+      <h3 style="font-family:Amiri,serif;color:var(--gold-light);font-size:1.7rem">تم تسجيل حجزك بإذن الله</h3>
+      <p style="color:var(--muted);margin:6px 0 12px">احتفظي بكود الحجز، هتحتاجيه علشان تدخلي الحصة وتتابعي حجزك.</p>
+      <div class="codebox" id="theCode">${esc(r.code)}</div>
+      <button class="btn btn-small" style="margin-top:8px" id="cpCode">نسخ الكود</button>
+    </div>
+    ${needPay ? `<div style="margin-top:22px">
+      <h4 style="color:var(--gold-light);font-size:1.1rem">الخطوة الجاية: التحويل (${money(o.pricing.total, st.currency)})</h4>
+      <p style="color:var(--muted);font-size:.92rem">حوّلي المبلغ على أي رقم من دول ثم ارفعي صورة الإيصال هنا. ${o.holdUntil ? `المكان محجوز لك لحد ${fmtDateTime(o.holdUntil)}.` : ""}</p>
+      ${nums.map((m) => `<div class="paybox"><div><small style="color:var(--muted)">${PAY_LABEL[m]}</small><div class="num">${esc(st[m])}</div></div><button class="btn btn-small" data-copy="${esc(st[m])}">نسخ</button></div>`).join("")}
+      <div id="upBox" style="margin-top:14px">
+        <label class="upload-zone" for="fReceipt" id="upZone"><div style="font-size:1.8rem">📤</div><div>اضغطي لرفع صورة الإيصال</div><div class="hint" style="color:var(--muted)">صورة من الموبايل (JPG / PNG)</div><img id="prev" class="hidden"></label>
+        <input type="file" id="fReceipt" accept="image/*" class="hidden">
+        <div class="err" id="upErr"></div>
+      </div></div>` : `<p style="margin-top:18px;text-align:center;color:var(--ok)">الحجز مؤكد ✓ (حصة مجانية). هتلاقي زرار دخول الحصة في صفحة حجزك قبل الميعاد.</p>`}
+    <div class="nav-btns" style="justify-content:center;flex-wrap:wrap">
+      <a class="btn btn-gold" href="/booking?c=${encodeURIComponent(r.code)}">صفحة حجزي</a>
+      ${st.whatsapp ? `<a class="btn btn-wa" target="_blank" rel="noopener" href="${waLink(st.whatsapp, `السلام عليكم، أنا ${S.name}، حجزت حصة وكود الحجز ${r.code}`)}">كلّمي المعلم على واتساب</a>` : ""}
+    </div>`;
+  $("#cpCode").onclick = () => copyText(r.code);
+  $$("[data-copy]").forEach((el) => el.onclick = () => copyText(el.dataset.copy));
+  const f = $("#fReceipt");
+  if (f) f.onchange = async () => {
+    const file = f.files[0]; if (!file) return;
+    $("#upErr").textContent = "";
+    try {
+      const img = await compressImage(file);
+      $("#prev").src = img; $("#prev").classList.remove("hidden");
+      $("#upZone").firstElementChild.nextElementSibling.textContent = "جاري الرفع…";
+      await api(`/api/booking/${r.code}/receipt`, { method: "POST", body: { image: img, method: S.method } });
+      $("#upBox").innerHTML = `<div class="summary" style="text-align:center;color:var(--ok)">تم استلام الإيصال ✓ هنراجع الدفع ونأكد حجزك قريبًا، وهتلاقي الحالة في صفحة حجزك.</div>`;
+    } catch (e) { $("#upErr").textContent = e.message; $("#upZone").firstElementChild.nextElementSibling.textContent = "اضغطي لرفع صورة الإيصال"; }
+  };
+  window.scrollTo({ top: $("#book").offsetTop - 70, behavior: "smooth" });
+}
+
+// ===== تشغيل =====
+$("#trackForm").onsubmit = (e) => {
+  e.preventDefault();
+  const c = $("#trackCode").value.trim().toUpperCase();
+  if (c.length >= 4) location.href = "/booking?c=" + encodeURIComponent(c);
+};
+(async function init() {
+  initBackground(); initReveal(); drawMyCodes();
+  $("#brandIcon").innerHTML = STAR_SVG;
+  try {
+    const r = await api("/api/public");
+    applySettings(r.settings);
+    render();
+  } catch (e) {
+    wiz.innerHTML = `<p class="err" style="text-align:center">${esc(e.message)}</p>`;
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة التحكم</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#070707">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .atabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0; }
+  .atabs .tab .n { background: var(--bad); color: #fff; border-radius: 999px; padding: 0 8px; font-size: .75rem; margin-inline-start: 6px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .stat { text-align: center; padding: 14px; }
+  .stat b { display: block; font-size: 1.9rem; color: var(--gold-light); line-height: 1.2; }
+  .stat span { color: var(--muted); font-size: .88rem; }
+  .ord { margin-bottom: 14px; }
+  .ord .top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+  .ord .nm { font-family: "Amiri", serif; font-size: 1.3rem; color: var(--gold-light); }
+  .ord .meta { color: var(--muted); font-size: .9rem; }
+  .ord .acts { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  .kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px 14px; font-size: .93rem; margin: 8px 0; }
+  .kv span { color: var(--muted); }
+  .asess { border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin-top: 8px; background: rgba(0,0,0,.3); }
+  .asess .r1 { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .asess .r2 { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .asess select { width: auto; padding: 5px 10px; }
+  .asess input[type=text] { flex: 1; min-width: 160px; padding: 6px 10px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .filters input { max-width: 240px; }
+  .daychk { display: flex; gap: 6px; flex-wrap: wrap; }
+  .daychk label { cursor: pointer; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: .88rem; user-select: none; }
+  .daychk input { display: none; }
+  .daychk input:checked + span { color: #1a1405; }
+  .daychk label:has(input:checked) { background: var(--gold-grad); color: #1a1405; font-weight: 700; border-color: transparent; }
+  .rule { display: grid; gap: 10px; border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px; background: rgba(0,0,0,.3); }
+  .rule .rr { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+  .rule .rr > div { flex: 1; min-width: 110px; }
+  .chk { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .chk input { width: 20px; height: 20px; accent-color: #d4af37; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 200; display: grid; place-items: center; padding: 20px; }
+  .modal img { max-width: 100%; max-height: 85vh; border-radius: 12px; border: 1px solid var(--gold); }
+  .tbl { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  .tbl th, .tbl td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
+  .tbl th { color: var(--gold-light); }
+  .todo { border: 1px dashed var(--line-strong); background: rgba(212,175,55,.06); border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; }
+  .todo li { margin-inline-start: 20px; }
+  .tablewrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="container">
+    <a class="brand" href="/admin" style="text-decoration:none"><span id="brandIcon"></span><span>لوحة التحكم</span></a>
+    <nav class="nav"><a href="/" target="_blank" class="keep">الموقع</a><a href="#" id="logout" class="keep hidden">خروج</a></nav>
+  </div>
+</header>
+<main class="page-pad"><div class="container" id="app"><p style="text-align:center;color:var(--muted)">جاري التحميل…</p></div></main>
+
+<script src="/common.js"></script>
+<script>
+let TOKEN = localStorage.getItem("adminToken") || "";
+let D = null;              // { settings, orders, now }
+let TAB = "schedule";
+let FILTER = "all", QUERY = "";
+const app = $("#app");
+const DAYS = [[6, "السبت"], [0, "الأحد"], [1, "الاثنين"], [2, "الثلاثاء"], [3, "الأربعاء"], [4, "الخميس"], [5, "الجمعة"]];
+const A = (path, opts = {}) => api(path, { ...opts, token: TOKEN });
+
+function logout(msg) {
+  TOKEN = ""; localStorage.removeItem("adminToken"); D = null;
+  $("#logout").classList.add("hidden");
+  showLogin(msg);
+}
+$("#logout").onclick = async (e) => { e.preventDefault(); try { await A("/api/admin/logout", { method: "POST" }); } catch {} logout(); };
+
+// ===== الدخول =====
+async function showLogin(msg) {
+  let setup = true;
+  try { setup = (await api("/api/admin/status")).setup; } catch (e) { app.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  app.innerHTML = `<div class="card" style="max-width:440px;margin:30px auto;text-align:center">
+    <div style="font-size:2.2rem">🔐</div>
+    <h3 style="font-family:Amiri,serif;color:var(--gold-light);font-size:1.5rem">${setup ? "تسجيل الدخول" : "أول مرة: اختار كلمة سر"}</h3>
+    ${setup ? "" : `<p style="color:var(--muted);font-size:.9rem">كلمة السر دي هي اللي هتدخل بيها لوحة التحكم. 8 حروف على الأقل، واحتفظ بيها.</p>`}
+    <form id="lf" style="margin-top:14px">
+      <div class="field"><input type="password" id="pw" placeholder="كلمة السر" autocomplete="${setup ? "current-password" : "new-password"}"></div>
+      ${setup ? "" : `<div class="field"><input type="password" id="pw2" placeholder="أعد كتابة كلمة السر" autocomplete="new-password"></div>`}
+      <button class="btn btn-gold" style="width:100%" type="submit">${setup ? "دخول" : "حفظ ودخول"}</button>
+      <div class="err" id="lerr">${esc(msg || "")}</div>
+    </form></div>`;
+  $("#lf").onsubmit = async (e) => {
+    e.preventDefault();
+    const pw = $("#pw").value;
+    try {
+      if (!setup && pw !== $("#pw2").value) return ($("#lerr").textContent = "كلمتين السر مش متطابقين");
+      const r = await api(setup ? "/api/admin/login" : "/api/admin/setup", { method: "POST", body: { password: pw } });
+      TOKEN = r.token; localStorage.setItem("adminToken", TOKEN);
+      await loadData();
+    } catch (er) { $("#lerr").textContent = er.message; }
+  };
+}
+
+async function loadData(keepScroll) {
+  try { D = await A("/api/admin/data"); }
+  catch (e) { if (e.status === 401) return logout(e.message); toast(e.message, true); return; }
+  $("#logout").classList.remove("hidden");
+  const y = scrollY;
+  draw();
+  if (keepScroll) scrollTo(0, y);
+}
+
+// ===== مساعدات =====
+const pendingCount = () => D.orders.filter((o) => o.status === "active" && o.payment.status === "pending").length;
+const kindLabel = (s, o) => (s.kind === "group" ? "جماعية" : o.isTrial ? "تجريبية" : "فردية");
+const siteUrl = () => location.origin;
+
+function waConfirm(o) {
+  const ss = o.sessions.filter((s) => s.status === "scheduled").map((s) => "• " + fmtDateTime(s.start)).join("\n");
+  const txt = `السلام عليكم ${o.student.name} 🌙\nتم تأكيد حجزك (كود ${o.code}).\nمواعيدك (بتوقيت مصر):\n${ss}\n\nتدخلي الحصة من هنا في الميعاد:\n${siteUrl()}/booking?c=${o.code}`;
+  return waLink(o.student.phone, txt);
+}
+function waRemind(o, s) {
+  const txt = `السلام عليكم ${o.student.name} 🌙\nتذكير بحصة التحفيظ ${fmtDay(s.start)} الساعة ${fmtTime(s.start)} (بتوقيت مصر).\nالدخول من هنا: ${siteUrl()}/booking?c=${o.code}`;
+  return waLink(o.student.phone, txt);
+}
+
+function draw() {
+  const st = D.settings;
+  const todo = [];
+  if (!st.priceIndividual && !st.priceGroup) todo.push("حدد سعر الحصة (تبويب الإعدادات)");
+  if (!st.instapay && !st.vodafone) todo.push("اكتب رقم انستا باي أو فودافون كاش (الإعدادات)");
+  if (!st.rules.length) todo.push("ضيف مواعيدك المتاحة (تبويب المواعيد)");
+  if (!st.whatsapp) todo.push("اكتب رقم الواتساب بتاعك (الإعدادات)");
+  if (!st.bookingOpen) todo.push("افتح الحجز لما تبقى جاهز (الإعدادات ← فتح الحجز)");
+  const pc = pendingCount();
+  app.innerHTML = `
+    ${todo.length ? `<div class="todo"><b style="color:var(--gold-light)">لسه محتاج تعمل:</b><ul>${todo.map((t) => `<li>${t}</li>`).join("")}</ul></div>` : ""}
+    <div class="atabs">
+      ${[["schedule", "الجدول"], ["orders", "الحجوزات"], ["avail", "المواعيد"], ["students", "الطلاب"], ["settings", "الإعدادات"]]
+        .map(([k, l]) => `<button class="tab ${TAB === k ? "on" : ""}" data-tab="${k}">${l}${k === "orders" && pc ? `<span class="n">${pc}</span>` : ""}</button>`).join("")}
+    </div>
+    <div id="tabBody"></div>`;
+  $$("[data-tab]").forEach((el) => el.onclick = () => { TAB = el.dataset.tab; draw(); loadData(); });
+  ({ schedule: tabSchedule, orders: tabOrders, avail: tabAvail, students: tabStudents, settings: tabSettings })[TAB]();
+}
+
+// ===== الجدول القادم =====
+function tabSchedule() {
+  const now = D.now;
+  const rows = [];
+  for (const o of D.orders) {
+    if (o.status !== "active" || !o.holds) continue;
+    for (const s of o.sessions) if (s.status === "scheduled" && s.end > now - 3600000) rows.push({ o, s });
+  }
+  rows.sort((a, b) => a.s.start - b.s.start);
+  const today = dayKey(now), todayCount = rows.filter((r) => dayKey(r.s.start) === today).length;
+  const active = D.orders.filter((o) => o.status === "active");
+  const stats = `<div class="stats">
+    <div class="card stat"><b>${todayCount}</b><span>حصص النهاردة</span></div>
+    <div class="card stat"><b>${rows.length}</b><span>حصص جاية</span></div>
+    <div class="card stat"><b>${pendingCount()}</b><span>إيصالات مستنية تأكيدك</span></div>
+    <div class="card stat"><b>${active.length}</b><span>حجوزات شغالة</span></div></div>`;
+  let h = stats;
+  if (!rows.length) h += `<div class="card" style="text-align:center;color:var(--muted)">مفيش حصص جاية دلوقتي.</div>`;
+  const byDay = new Map();
+  for (const r of rows) { const k = dayKey(r.s.start); if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(r); }
+  for (const [, arr] of byDay) {
+    h += `<div class="card" style="margin-bottom:12px"><h4 style="font-family:Amiri,serif;color:var(--gold-light);font-size:1.2rem;margin-bottom:6px">${fmtDay(arr[0].s.start)}${dayKey(arr[0].s.start) === today ? " (النهاردة)" : ""}</h4>`;
+    // نجمّع الجماعي في نفس الميعاد
+    const groups = new Map();
+    for (const r of arr) { const k = r.s.kind + r.s.start; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
+    for (const [, g] of groups) {
+      const first = g[0];
+      const paid = (o) => o.payment.status === "confirmed" || o.pricing.total === 0;
+      h += `<div class="asess"><div class="r1"><div><b style="color:var(--gold-light)">${fmtTime(first.s.start)}</b> <span class="badge mute">${kindLabel(first.s, first.o)}${first.s.kind === "group" ? " · " + g.length + " طالب" : ""}</span></div>
+        <a class="btn btn-small btn-gold" target="_blank" rel="noopener" href="${esc(first.s.joinUrl)}">ابدأ الحصة 🎥</a></div>
+        <div style="margin-top:6px;font-size:.93rem">${g.map((r) => `${esc(r.o.student.name)}${r.o.student.kind === "child" ? " (طفل)" : ""} ${paid(r.o) ? "" : `<span class="badge warn">لسه ما دفعش</span>`} <small style="color:var(--muted)">${esc(quranText(r.o.quran))}</small>`).join("<br>")}</div></div>`;
+    }
+    h += `</div>`;
+  }
+  $("#tabBody").innerHTML = h;
+}
+
+// ===== الحجوزات =====
+function orderMatches(o) {
+  if (FILTER === "pending" && !(o.status === "active" && o.payment.status === "pending")) return false;
+  if (FILTER === "unpaid" && !(o.status === "active" && o.payment.status === "unpaid")) return false;
+  if (FILTER === "confirmed" && !(o.status === "active" && (o.payment.status === "confirmed"))) return false;
+  if (FILTER === "cancelled" && o.status !== "cancelled" && o.payment.status !== "rejected") return false;
+  if (QUERY) {
+    const q = QUERY.toLowerCase();
+    if (!(`${o.student.name} ${o.student.guardianName} ${o.student.phone} ${o.code}`).toLowerCase().includes(q)) return false;
+  }
+  return true;
+}
+function tabOrders() {
+  const list = D.orders.filter(orderMatches);
+  $("#tabBody").innerHTML = `
+    <div class="filters">
+      ${[["all", "الكل"], ["pending", "إيصال مستني التأكيد"], ["unpaid", "لسه ما دفعوش"], ["confirmed", "مدفوعة"], ["cancelled", "ملغية / مرفوضة"]].map(([k, l]) => `<button class="tab ${FILTER === k ? "on" : ""}" data-f="${k}">${l}</button>`).join("")}
+      <input type="text" id="q" placeholder="بحث بالاسم أو الرقم أو الكود" value="${esc(QUERY)}">
+      <button class="btn btn-small" id="refresh">تحديث</button>
+    </div>
+    ${list.length ? list.map(orderCard).join("") : `<div class="card" style="text-align:center;color:var(--muted)">مفيش حجوزات هنا.</div>`}`;
+  $$("[data-f]").forEach((el) => el.onclick = () => { FILTER = el.dataset.f; tabOrders(); });
+  $("#q").oninput = (e) => { QUERY = e.target.value; const pos = e.target.selectionStart; tabOrders(); const q = $("#q"); q.focus(); q.setSelectionRange(pos, pos); };
+  $("#refresh").onclick = () => loadData(true);
+  bindOrders();
+}
+function orderCard(o) {
+  const p = PAY_STATUS[o.payment.status] || ["", ""];
+  const ost = o.status === "cancelled" ? `<span class="badge bad">الحجز ملغي</span>` : !o.holds && o.payment.status === "unpaid" ? `<span class="badge bad">انتهت المهلة</span>` : "";
+  return `<div class="card ord" data-id="${o.id}">
+    <div class="top">
+      <div><div class="nm">${esc(o.student.name)} ${o.student.kind === "child" ? `<span class="badge mute">طفل</span>` : ""} ${o.isTrial ? `<span class="badge">تجريبية</span>` : ""}</div>
+        <div class="meta">كود <b dir="ltr" style="color:var(--gold-light)">${esc(o.code)}</b> · اتسجل ${fmtDateTime(o.createdAt)}</div></div>
+      <div style="text-align:end"><span class="badge ${p[1]}">${p[0]}</span> ${ost}<div class="meta" style="margin-top:4px">${money(o.pricing.total, D.settings.currency)}${o.pricing.discountPct ? ` (خصم ${o.pricing.discountPct}%)` : ""} · ${o.payment.method ? PAY_LABEL[o.payment.method] : ""}</div></div>
+    </div>
+    <div class="kv">
+      ${o.student.kind === "child" ? `<div><span>ولي الأمر:</span> ${esc(o.student.guardianName)}</div>` : ""}
+      ${o.student.age ? `<div><span>السن:</span> ${o.student.age}</div>` : ""}
+      <div><span>واتساب:</span> <b dir="ltr">${esc(o.student.phone)}</b></div>
+      ${o.student.country ? `<div><span>الدولة:</span> ${esc(o.student.country)}</div>` : ""}
+      <div><span>المطلوب:</span> ${esc(quranText(o.quran))}</div>
+      <div><span>نوع الحصة:</span> ${LESSON_TYPES[o.lessonType]}</div>
+      <div><span>القراءة:</span> ${CAN_READ[o.level.canRead]}</div>
+      ${o.level.memorized ? `<div><span>محفوظ:</span> ${esc(o.level.memorized)}</div>` : ""}
+      ${o.notes ? `<div style="grid-column:1/-1"><span>ملاحظات الطالب:</span> ${esc(o.notes)}</div>` : ""}
+      ${o.student.tz && o.student.tz !== CAIRO ? `<div><span>توقيتها:</span> <span dir="ltr">${esc(o.student.tz)}</span></div>` : ""}
+    </div>
+    <div class="acts">
+      ${o.payment.receiptAt ? `<button class="btn btn-small" data-act="receipt">🧾 شوف الإيصال</button>` : ""}
+      ${o.payment.status !== "confirmed" && o.pricing.total > 0 ? `<button class="btn btn-small btn-ok" data-act="confirm">✓ تأكيد الدفع</button>` : ""}
+      ${o.payment.status !== "rejected" && o.payment.status !== "confirmed" && o.pricing.total > 0 ? `<button class="btn btn-small btn-danger" data-act="reject">رفض الإيصال</button>` : ""}
+      ${o.payment.status === "confirmed" && o.pricing.total > 0 ? `<button class="btn btn-small" data-act="unconfirm">إلغاء التأكيد</button>` : ""}
+      <a class="btn btn-small btn-wa" target="_blank" rel="noopener" href="${waConfirm(o)}">واتساب: تأكيد الحجز</a>
+      ${o.status === "active" ? `<button class="btn btn-small btn-danger" data-act="cancel">إلغاء الحجز</button>` : `<button class="btn btn-small" data-act="reopen">إعادة تفعيل</button>`}
+    </div>
+    ${o.sessions.map((s) => `<div class="asess" data-start="${s.start}">
+      <div class="r1"><div><b>${fmtDateTime(s.start)}</b> <span class="badge mute">${kindLabel(s, o)}</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <select data-sstatus>${Object.entries({ scheduled: "محجوزة", done: "تمت", absent: "غياب", cancelled: "ملغاة" }).map(([k, v]) => `<option value="${k}" ${s.status === k ? "selected" : ""}>${v}</option>`).join("")}</select>
+          <a class="btn btn-small" target="_blank" rel="noopener" href="${esc(s.joinUrl)}">رابط الحصة</a>
+          <button class="btn btn-small" data-copy="${esc(s.joinUrl)}">نسخ الرابط</button>
+          <a class="btn btn-small btn-wa" target="_blank" rel="noopener" href="${waRemind(o, s)}">تذكير</a>
+        </div></div>
+      <div class="r2"><input type="text" data-prog placeholder="وصلت لفين؟ (مثال: سورة النبأ من 1 إلى 20)" value="${esc(s.progress || "")}"><button class="btn btn-small btn-gold" data-act="savesess">حفظ</button></div>
+    </div>`).join("")}
+    <div class="r2" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+      <input type="text" data-note placeholder="ملاحظة خاصة بيك (مش بتظهر للطالب)" value="${esc(o.adminNote || "")}" style="flex:1;min-width:180px">
+      <input type="url" data-link class="ltr" placeholder="رابط اجتماع خاص (اختياري، يبدأ بـ https://)" value="${esc(o.meetingLink || "")}" style="flex:1;min-width:180px">
+      <button class="btn btn-small" data-act="savemeta">حفظ</button>
+    </div>
+  </div>`;
+}
+function bindOrders() {
+  $$(".ord").forEach((card) => {
+    const id = card.dataset.id;
+    const order = D.orders.find((x) => x.id === id);
+    const post = async (body, okMsg) => {
+      try { await A(`/api/admin/orders/${id}`, { method: "POST", body }); toast(okMsg || "تم ✓"); await loadData(true); }
+      catch (e) { toast(e.message, true); }
+    };
+    $$("[data-copy]", card).forEach((b) => b.onclick = () => copyText(b.dataset.copy));
+    $$("[data-act]", card).forEach((b) => b.onclick = async () => {
+      const act = b.dataset.act;
+      if (act === "confirm") return post({ paymentStatus: "confirmed" }, "تم تأكيد الدفع");
+      if (act === "unconfirm") return post({ paymentStatus: "pending" }, "رجعت لمستني التأكيد");
+      if (act === "reject") { if (confirm("ترفض الإيصال؟ الأماكن هتتفتح لغيرها.")) return post({ paymentStatus: "rejected" }, "تم الرفض"); return; }
+      if (act === "cancel") { if (confirm("تلغي الحجز بالكامل؟")) return post({ cancelOrder: true }, "تم إلغاء الحجز"); return; }
+      if (act === "reopen") return post({ reopenOrder: true }, "تم التفعيل");
+      if (act === "receipt") {
+        try {
+          const r = await A(`/api/admin/receipt/${id}`);
+          const m = document.createElement("div"); m.className = "modal"; m.innerHTML = `<img src="${r.image}" alt="الإيصال">`;
+          m.onclick = () => m.remove(); document.body.appendChild(m);
+        } catch (e) { toast(e.message, true); }
+        return;
+      }
+      if (act === "savesess") {
+        const row = b.closest(".asess");
+        return post({ sessionStart: row.dataset.start, sessionStatus: $("[data-sstatus]", row).value, progress: $("[data-prog]", row).value }, "تم الحفظ");
+      }
+      if (act === "savemeta") return post({ adminNote: $("[data-note]", card).value, meetingLink: $("[data-link]", card).value }, "تم الحفظ");
+    });
+    // تغيير الحالة مباشرة
+    $$("[data-sstatus]", card).forEach((sel) => sel.onchange = () => {
+      const row = sel.closest(".asess");
+      post({ sessionStart: row.dataset.start, sessionStatus: sel.value, progress: $("[data-prog]", row).value }, "تم تحديث حالة الحصة");
+    });
+  });
+}
+
+// ===== المواعيد المتاحة =====
+let RULES = [], BLOCKED = [];
+function tabAvail() {
+  RULES = JSON.parse(JSON.stringify(D.settings.rules));
+  BLOCKED = [...D.settings.blockedDates];
+  drawAvail();
+}
+function drawAvail() {
+  const st = D.settings;
+  $("#tabBody").innerHTML = `
+    <div class="card">
+      <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem">مواعيدك الأسبوعية</h3>
+      <p style="color:var(--muted);font-size:.92rem;margin:4px 0 12px">اكتب الفترات اللي إنت فاضي فيها كل أسبوع <b>بتوقيت القاهرة</b>، والموقع هيقسمها لحصص (${st.sessionMinutes} دقيقة للفردي و${st.groupMinutes} للجماعي) ويظهرها للطلاب للأسبوعين الجايين.</p>
+      <div id="rules">${RULES.map(ruleHtml).join("") || `<p style="color:var(--muted)">لسه مفيش مواعيد. اضغط "إضافة فترة".</p>`}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-small" id="addRule">+ إضافة فترة</button></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem">أيام إجازة / مقفولة</h3>
+      <p style="color:var(--muted);font-size:.92rem;margin:4px 0 10px">أي يوم تضيفه هنا مش هيظهر فيه مواعيد.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><input type="date" id="blkDate" style="max-width:200px"><button class="btn btn-small" id="addBlk">إضافة</button></div>
+      <div id="blkList" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${BLOCKED.map((d) => `<span class="badge">${d} <a href="#" data-rmblk="${d}" style="color:var(--bad)">✕</a></span>`).join("")}</div>
+    </div>
+    <div style="margin-top:16px;text-align:center"><button class="btn btn-gold" id="saveAvail">حفظ المواعيد</button></div>`;
+  const syncRules = () => {
+    $$(".rule").forEach((el, i) => {
+      RULES[i].days = $$("input[data-day]:checked", el).map((x) => +x.dataset.day);
+      RULES[i].start = $("[data-s]", el).value; RULES[i].end = $("[data-e]", el).value;
+      RULES[i].kind = $("[data-k]", el).value; RULES[i].capacity = +$("[data-c]", el).value || st.groupCapacity;
+    });
+  };
+  $("#addRule").onclick = () => { syncRules(); RULES.push({ id: "n" + Date.now(), days: [], start: "16:00", end: "20:00", kind: "individual", capacity: st.groupCapacity }); drawAvail(); };
+  $$("[data-rm]").forEach((b) => b.onclick = () => { syncRules(); RULES.splice(+b.dataset.rm, 1); drawAvail(); });
+  $$("[data-k]").forEach((sel) => sel.onchange = () => { syncRules(); drawAvail(); });
+  $("#addBlk").onclick = () => { const v = $("#blkDate").value; if (v && !BLOCKED.includes(v)) { syncRules(); BLOCKED.push(v); BLOCKED.sort(); drawAvail(); } };
+  $$("[data-rmblk]").forEach((a) => a.onclick = (e) => { e.preventDefault(); syncRules(); BLOCKED = BLOCKED.filter((x) => x !== a.dataset.rmblk); drawAvail(); });
+  $("#saveAvail").onclick = async () => {
+    syncRules();
+    for (const r of RULES) {
+      if (!r.days.length) return toast("اختار يوم واحد على الأقل في كل فترة", true);
+      if (!(r.end > r.start)) return toast("وقت النهاية لازم يكون بعد البداية", true);
+    }
+    try { await A("/api/admin/settings", { method: "POST", body: { rules: RULES, blockedDates: BLOCKED } }); toast("تم حفظ المواعيد ✓"); await loadData(true); }
+    catch (e) { toast(e.message, true); }
+  };
+}
+function ruleHtml(r, i) {
+  return `<div class="rule">
+    <div class="daychk">${DAYS.map(([d, n]) => `<label><input type="checkbox" data-day="${d}" ${r.days.includes(d) ? "checked" : ""}><span>${n}</span></label>`).join("")}</div>
+    <div class="rr">
+      <div><label style="font-size:.85rem;color:var(--gold-light)">من</label><input type="time" data-s value="${r.start}"></div>
+      <div><label style="font-size:.85rem;color:var(--gold-light)">إلى</label><input type="time" data-e value="${r.end}"></div>
+      <div><label style="font-size:.85rem;color:var(--gold-light)">النوع</label><select data-k><option value="individual" ${r.kind === "individual" ? "selected" : ""}>فردي</option><option value="group" ${r.kind === "group" ? "selected" : ""}>جماعي</option></select></div>
+      <div style="${r.kind === "group" ? "" : "visibility:hidden"}"><label style="font-size:.85rem;color:var(--gold-light)">أقصى عدد</label><input type="number" data-c min="2" max="50" value="${r.capacity || 5}"></div>
+      <button class="btn btn-small btn-danger" data-rm="${i}">حذف</button>
+    </div></div>`;
+}
+
+// ===== الطلاب =====
+function tabStudents() {
+  const map = new Map();
+  for (const o of D.orders) {
+    if (o.payment.status === "rejected") continue;
+    const k = o.student.phone;
+    if (!map.has(k)) map.set(k, { name: o.student.name, kind: o.student.kind, phone: k, guardian: o.student.guardianName, done: 0, absent: 0, upcoming: 0, last: null, lastAt: 0 });
+    const m = map.get(k);
+    for (const s of o.sessions) {
+      if (s.status === "done") m.done++;
+      if (s.status === "absent") m.absent++;
+      if (s.status === "scheduled" && s.end > D.now && o.status === "active") m.upcoming++;
+      if (s.progress && s.start > m.lastAt) { m.last = s.progress; m.lastAt = s.start; }
+    }
+  }
+  const list = [...map.values()].sort((a, b) => b.lastAt - a.lastAt);
+  $("#tabBody").innerHTML = `<div class="card tablewrap"><table class="tbl"><thead><tr><th>الطالب</th><th>واتساب</th><th>تمت</th><th>غياب</th><th>جاية</th><th>آخر تقدم</th></tr></thead><tbody>
+    ${list.map((m) => `<tr><td>${esc(m.name)}${m.kind === "child" ? ` <span class="badge mute">طفل</span><br><small style="color:var(--muted)">${esc(m.guardian)}</small>` : ""}</td>
+      <td><a href="${waLink(m.phone)}" target="_blank" rel="noopener" dir="ltr">${esc(m.phone)}</a></td><td>${m.done}</td><td>${m.absent}</td><td>${m.upcoming}</td>
+      <td>${m.last ? `${esc(m.last)}<br><small style="color:var(--muted)">${fmtDay(m.lastAt)}</small>` : `<span style="color:var(--muted)">—</span>`}</td></tr>`).join("") || `<tr><td colspan="6" style="text-align:center;color:var(--muted)">لسه مفيش طلاب.</td></tr>`}
+    </tbody></table></div>`;
+}
+
+// ===== الإعدادات =====
+function tabSettings() {
+  const s = D.settings;
+  const inp = (id, label, val, type = "text", extra = "", hint = "") => `<div class="field"><label>${label}</label><input type="${type}" id="${id}" value="${esc(val)}" ${extra}>${hint ? `<div class="hint">${hint}</div>` : ""}</div>`;
+  $("#tabBody").innerHTML = `
+  <div class="card">
+    <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem;margin-bottom:10px">الحجز</h3>
+    <label class="chk" style="margin-bottom:12px"><input type="checkbox" id="bookingOpen" ${s.bookingOpen ? "checked" : ""}><span><b>فتح الحجز للناس</b> <small style="color:var(--muted)">(لو مقفول بيظهر "قريبًا")</small></span></label>
+    <label class="chk" style="margin-bottom:12px"><input type="checkbox" id="trialEnabled" ${s.trialEnabled ? "checked" : ""}><span><b>تفعيل الحصة التجريبية</b> <small style="color:var(--muted)">(قفلها وفتحها وقت ما تحب)</small></span></label>
+    <div class="row">${inp("trialPrice", "سعر الحصة التجريبية (0 = مجانية)", s.trialPrice, "number", 'min="0"')}${inp("trialNote", "وصف قصير للتجريبية (اختياري)", s.trialNote, "text", 'maxlength="200"')}</div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem;margin-bottom:10px">الأسعار والمدة</h3>
+    <div class="row">${inp("priceIndividual", "سعر الحصة الفردية", s.priceIndividual, "number", 'min="0"')}${inp("priceGroup", "سعر الحصة الجماعية (للفرد)", s.priceGroup, "number", 'min="0"')}</div>
+    <div class="row">${inp("sessionMinutes", "مدة الحصة الفردية (دقيقة)", s.sessionMinutes, "number", 'min="10" max="180"')}${inp("groupMinutes", "مدة الحصة الجماعية (دقيقة)", s.groupMinutes, "number", 'min="10" max="180"')}</div>
+    <div class="row">${inp("groupCapacity", "أقصى عدد افتراضي في المجموعة", s.groupCapacity, "number", 'min="2" max="50"')}${inp("currency", "العملة", s.currency, "text", 'maxlength="12"')}</div>
+    <div class="field"><label>خصومات على عدد الحصص</label><div id="disc"></div><button class="btn btn-small" id="addDisc" type="button">+ إضافة خصم</button><div class="hint">مثال: لو حجز 4 حصص أو أكتر يتخصم 10%.</div></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem;margin-bottom:10px">الدفع والتواصل</h3>
+    <div class="row">${inp("instapay", "حساب انستا باي (رقم أو عنوان)", s.instapay, "text", 'class="ltr" maxlength="80"')}${inp("vodafone", "رقم فودافون كاش", s.vodafone, "tel", 'maxlength="40"')}</div>
+    ${inp("whatsapp", "رقم واتساب المعلم (للتواصل مع الطلاب)", s.whatsapp, "tel", 'maxlength="30"', "بيظهر زرار واتساب في الموقع.")}
+    ${inp("fixedMeetingLink", "رابط اجتماع ثابت (اختياري)", s.fixedMeetingLink, "url", 'class="ltr"', "لو سيبته فاضي الموقع بيعمل غرفة Jitsi سرية لكل حجز. لو كتبت رابط Google Meet أو Zoom هيتستخدم للكل.")}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem;margin-bottom:10px">الموقع</h3>
+    <div class="row">${inp("siteName", "اسم الموقع", s.siteName, "text", 'maxlength="60"')}${inp("teacherName", "اسم المعلم (بيظهر تحت العنوان)", s.teacherName, "text", 'maxlength="60"')}</div>
+    ${inp("tagline", "الوصف تحت العنوان", s.tagline, "text", 'maxlength="140"')}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem;margin-bottom:10px">قواعد الحجز والإلغاء <small style="color:var(--muted);font-size:.8rem">(هنراجعها مع بعض)</small></h3>
+    <div class="row">${inp("cancelHours", "الإلغاء مسموح قبل الحصة بـ (ساعات) - اكتب -1 لقفل الإلغاء", s.cancelHours, "number", 'min="-1"')}${inp("holdHours", "مهلة الدفع: المكان بيتحجز كام ساعة", s.holdHours, "number", 'min="0"')}</div>
+    <div class="row">${inp("daysAhead", "الحجز مفتوح لكام يوم قدام", s.daysAhead, "number", 'min="1" max="60"')}${inp("minNoticeHours", "أقل مدة قبل الحصة للحجز (ساعات)", s.minNoticeHours, "number", 'min="0"')}</div>
+    <div class="row">${inp("maxSessions", "أقصى عدد حصص في الحجز الواحد", s.maxSessions, "number", 'min="1" max="30"')}${inp("joinEarlyMinutes", "زرار الدخول يظهر قبل الحصة بـ (دقيقة)", s.joinEarlyMinutes, "number", 'min="0"')}</div>
+  </div>
+  <div style="margin-top:16px;text-align:center"><button class="btn btn-gold" id="saveSet">حفظ الإعدادات</button></div>
+  <div class="card" style="margin-top:22px">
+    <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem;margin-bottom:10px">تغيير كلمة السر</h3>
+    <div class="row"><div class="field"><label>الحالية</label><input type="password" id="pwOld" autocomplete="current-password"></div><div class="field"><label>الجديدة (8 حروف+)</label><input type="password" id="pwNew" autocomplete="new-password"></div></div>
+    <button class="btn btn-small" id="chgPw">تغيير</button>
+  </div>`;
+  let disc = JSON.parse(JSON.stringify(s.discountRules));
+  const drawDisc = () => {
+    $("#disc").innerHTML = disc.map((d, i) => `<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">لو حجز <input type="number" data-dm="${i}" value="${d.min}" min="2" style="width:80px"> حصص أو أكتر: خصم <input type="number" data-dp="${i}" value="${d.pct}" min="1" max="90" style="width:80px"> % <button class="btn btn-small btn-danger" data-dx="${i}" type="button">حذف</button></div>`).join("");
+    $$("[data-dm]").forEach((x) => x.oninput = () => (disc[+x.dataset.dm].min = +x.value));
+    $$("[data-dp]").forEach((x) => x.oninput = () => (disc[+x.dataset.dp].pct = +x.value));
+    $$("[data-dx]").forEach((x) => x.onclick = () => { disc.splice(+x.dataset.dx, 1); drawDisc(); });
+  };
+  drawDisc();
+  $("#addDisc").onclick = () => { disc.push({ min: 4, pct: 10 }); drawDisc(); };
+  $("#saveSet").onclick = async () => {
+    const g = (id) => $("#" + id).value;
+    const body = {
+      bookingOpen: $("#bookingOpen").checked, trialEnabled: $("#trialEnabled").checked, discountRules: disc,
+    };
+    for (const id of ["trialPrice", "trialNote", "priceIndividual", "priceGroup", "sessionMinutes", "groupMinutes", "groupCapacity", "currency", "instapay", "vodafone", "whatsapp", "fixedMeetingLink", "siteName", "teacherName", "tagline", "cancelHours", "holdHours", "daysAhead", "minNoticeHours", "maxSessions", "joinEarlyMinutes"]) body[id] = g(id);
+    try { await A("/api/admin/settings", { method: "POST", body }); toast("تم حفظ الإعدادات ✓"); await loadData(true); }
+    catch (e) { toast(e.message, true); }
+  };
+  $("#chgPw").onclick = async () => {
+    try { await A("/api/admin/password", { method: "POST", body: { old: $("#pwOld").value, password: $("#pwNew").value } }); toast("تم تغيير كلمة السر ✓"); $("#pwOld").value = $("#pwNew").value = ""; }
+    catch (e) { toast(e.message, true); }
+  };
+}
+
+// ===== تشغيل =====
+(async function init() {
+  initBackground();
+  $("#brandIcon").innerHTML = STAR_SVG;
+  if (TOKEN) await loadData(); else await showLogin();
+  // تحديث تلقائي كل دقيقة لما تكون في الجدول أو الحجوزات
+  setInterval(() => { if (D && !document.hidden && (TAB === "schedule" || (TAB === "orders" && !document.activeElement?.matches("input,select")))) loadData(true); }, 60000);
+})();
+</script>
+</body>
+</html>

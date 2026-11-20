@@ -1,0 +1,15 @@
+name = "quran-classes"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[[durable_objects.bindings]]
+name = "QURAN"
+class_name = "QuranDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["QuranDO"]

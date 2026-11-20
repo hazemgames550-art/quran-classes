@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>حجزي</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#070707">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="container">
+    <a class="brand" href="/" style="text-decoration:none"><span id="brandIcon"></span><span id="brandName">تحفيظ القرآن الكريم</span></a>
+    <nav class="nav"><a href="/" class="keep">الرئيسية</a></nav>
+  </div>
+</header>
+
+<main class="page-pad">
+  <div class="container" style="max-width:760px">
+    <div class="sec-title"><h2>صفحة حجزي</h2><div class="orn">✦</div></div>
+    <div id="view"><p style="text-align:center;color:var(--muted)">جاري التحميل…</p></div>
+  </div>
+</main>
+<footer><div class="container"><div class="hadith">«خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ»</div></div></footer>
+
+<script src="/common.js"></script>
+<script>
+const code = (new URLSearchParams(location.search).get("c") || "").trim().toUpperCase();
+let ST = null, ORDER = null;
+const view = $("#view");
+
+function badge(txt, cls) { return `<span class="badge ${cls}">${txt}</span>`; }
+
+function payBlock(o) {
+  const p = o.payment, st = ST;
+  if (o.pricing.total === 0 || p.status === "confirmed") return "";
+  if (o.status === "cancelled") return "";
+  const nums = ["instapay", "vodafone"].filter((m) => st[m]);
+  const rejected = p.status === "rejected";
+  const expired = o.status === "expired";
+  return `<div class="card" style="margin-top:18px">
+    <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem">${p.status === "pending" ? "الإيصال اتبعت ✓" : rejected ? "الدفع محتاج مراجعة" : "الدفع"}</h3>
+    ${p.status === "pending" ? `<p style="color:var(--muted)">استلمنا صورة الإيصال وبنراجعها، وهيتأكد الحجز في أقرب وقت. تقدري ترفعي صورة تانية لو حابة.</p>`
+      : rejected ? `<p style="color:var(--bad)">الإيصال ما اتقبلش. ارفعي صورة واضحة للتحويل أو كلّمي المعلم.</p>`
+      : expired ? `<p style="color:var(--bad)">انتهت مهلة الدفع. لو المكان لسه فاضي هيرجع بمجرد رفع الإيصال، وإلا اعملي حجز جديد.</p>`
+      : `<p style="color:var(--muted)">حوّلي <b style="color:var(--gold-light)">${money(o.pricing.total, st.currency)}</b> ثم ارفعي صورة الإيصال. ${o.holdUntil ? `المكان محجوز لك لحد ${fmtDateTime(o.holdUntil)}.` : ""}</p>`}
+    ${nums.map((m) => `<div class="paybox"><div><small style="color:var(--muted)">${PAY_LABEL[m]}</small><div class="num">${esc(st[m])}</div></div><button class="btn btn-small" data-copy="${esc(st[m])}">نسخ</button></div>`).join("")}
+    <label class="upload-zone" for="fReceipt" style="display:block;margin-top:10px"><div style="font-size:1.6rem">📤</div><div id="upTxt">اضغطي لرفع صورة الإيصال</div><img id="prev" class="hidden"></label>
+    <input type="file" id="fReceipt" accept="image/*" class="hidden">
+    <div class="err" id="upErr"></div>
+  </div>`;
+}
+
+function draw() {
+  const o = ORDER, st = ST;
+  const pay = PAY_STATUS[o.payment.status] || ["", ""];
+  const statusBadge = o.status === "cancelled" ? badge("ملغي", "bad") : o.status === "expired" ? badge("انتهت مهلة الدفع", "bad") : badge(pay[0], pay[1]);
+  const showFree = o.pricing.total === 0 ? badge("مجانية", "ok") : "";
+  view.innerHTML = `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><small style="color:var(--muted)">كود الحجز</small><div class="codebox" style="font-size:1.6rem;padding:2px 12px;display:inline-block;margin-inline-start:8px">${esc(o.code)}</div></div>
+        <div>${statusBadge} ${showFree}</div>
+      </div>
+      <div class="summary" style="margin-top:14px">
+        <div class="line"><span>الاسم</span><b>${esc(o.student.name)}</b></div>
+        <div class="line"><span>الإجمالي</span><b>${o.pricing.total ? money(o.pricing.total, st.currency) : "مجانًا"}</b></div>
+        ${o.pricing.discountPct ? `<div class="line"><span>الخصم</span><b>${o.pricing.discountPct}%</b></div>` : ""}
+        ${o.payment.method && o.pricing.total ? `<div class="line"><span>طريقة الدفع</span><b>${PAY_LABEL[o.payment.method]}</b></div>` : ""}
+      </div>
+    </div>
+    ${payBlock(o)}
+    <div class="card" style="margin-top:18px">
+      <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem;margin-bottom:10px">الحصص</h3>
+      ${USER_TZ !== CAIRO ? `<p class="hint" style="color:var(--muted);margin-bottom:8px">التوقيت الأساسي بتوقيت مصر، وتحته توقيتك.</p>` : `<p class="hint" style="color:var(--muted);margin-bottom:8px">كل المواعيد بتوقيت مصر (القاهرة).</p>`}
+      ${o.sessions.map((s, i) => {
+        const ss = SESSION_STATUS[s.status] || ["", ""];
+        const hint = localHint(s.start);
+        return `<div class="sess">
+          <div class="when"><b>${fmtDateTime(s.start)}</b><small>${s.kind === "group" ? "جماعية" : o.isTrial ? "تجريبية" : "فردية"} · ${Math.round((s.end - s.start) / 60000)} دقيقة${hint ? " · " + esc(hint) : ""}</small></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            ${badge(ss[0], ss[1])}
+            ${s.canJoin ? `<a class="btn btn-gold btn-small" target="_blank" rel="noopener" href="${esc(s.joinUrl)}">ادخلي الحصة 🎥</a>` : ""}
+            ${s.status === "scheduled" && !s.canJoin && o.status === "active" && (o.payment.status !== "confirmed" && o.pricing.total > 0) ? `<small style="color:var(--muted)">زرار الدخول هيظهر بعد تأكيد الدفع</small>` : ""}
+            ${s.status === "scheduled" && !s.canJoin && o.status === "active" && (o.payment.status === "confirmed" || o.pricing.total === 0) ? `<small style="color:var(--muted)">زرار الدخول بيظهر قبل الميعاد بـ ${st.joinEarlyMinutes} دقيقة</small>` : ""}
+            ${s.canCancel ? `<button class="btn btn-danger btn-small" data-cancel="${s.start}">إلغاء</button>` : ""}
+          </div>
+          ${s.progress ? `<div class="prog">📝 ${esc(s.progress)}</div>` : ""}
+        </div>`;
+      }).join("")}
+      <p class="hint" style="color:var(--muted)">${st.cancelHours >= 0 ? `الإلغاء متاح قبل الحصة بـ ${st.cancelHours} ساعة على الأقل.` : "للإلغاء أو التغيير كلّمي المعلم على الواتساب."}</p>
+    </div>
+    <div style="text-align:center;margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      ${st.whatsapp ? `<a class="btn btn-wa" target="_blank" rel="noopener" href="${waLink(st.whatsapp, `السلام عليكم، بخصوص حجزي كود ${o.code}`)}">كلّمي المعلم على واتساب</a>` : ""}
+      <a class="btn" href="/#book">حجز جديد</a>
+    </div>`;
+  $$("[data-copy]").forEach((el) => el.onclick = () => copyText(el.dataset.copy));
+  $$("[data-cancel]").forEach((el) => el.onclick = async () => {
+    if (!confirm("متأكدة إنك عايزة تلغي الحصة دي؟")) return;
+    try { const r = await api(`/api/booking/${code}/cancel`, { method: "POST", body: { start: +el.dataset.cancel } }); ORDER = r.order; draw(); toast("تم إلغاء الحصة"); }
+    catch (e) { toast(e.message, true); }
+  });
+  const f = $("#fReceipt");
+  if (f) f.onchange = async () => {
+    const file = f.files[0]; if (!file) return;
+    $("#upErr").textContent = "";
+    try {
+      const img = await compressImage(file);
+      $("#prev").src = img; $("#prev").classList.remove("hidden");
+      $("#upTxt").textContent = "جاري الرفع…";
+      const r = await api(`/api/booking/${code}/receipt`, { method: "POST", body: { image: img } });
+      ORDER = r.order; draw(); toast("تم استلام الإيصال ✓");
+    } catch (e) { $("#upErr").textContent = e.message; $("#upTxt").textContent = "اضغطي لرفع صورة الإيصال"; }
+  };
+}
+
+async function load(silent) {
+  try {
+    const r = await api(`/api/booking/${encodeURIComponent(code)}`);
+    ORDER = r.order;
+    if (!silent || !document.activeElement || document.activeElement.tagName !== "INPUT") draw();
+  } catch (e) {
+    if (!silent) view.innerHTML = `<div class="card" style="text-align:center"><p class="err" style="font-size:1.1rem">${esc(e.message)}</p><a class="btn" href="/#track">جربي كود تاني</a></div>`;
+  }
+}
+
+(async function init() {
+  initBackground();
+  $("#brandIcon").innerHTML = STAR_SVG;
+  if (!code) { location.href = "/#track"; return; }
+  try {
+    const r = await api("/api/public");
+    ST = r.settings;
+    $("#brandName").textContent = ST.siteName;
+    document.title = "حجزي - " + ST.siteName;
+  } catch (e) { view.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  await load(false);
+  setInterval(() => load(true), 30000);
+})();
+</script>
+</body>
+</html>
