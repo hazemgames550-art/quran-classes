@@ -10,6 +10,8 @@ import {
   publicSettings,
   orderHolds,
 } from "./logic.js";
+import { RoomDO } from "./room.js";
+export { RoomDO };
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -59,6 +61,7 @@ export class QuranDO extends DurableObject {
     this.sql.exec(`CREATE TABLE IF NOT EXISTS receipts(order_id TEXT PRIMARY KEY, mime TEXT, img TEXT, at INTEGER)`);
     this.sql.exec(`CREATE TABLE IF NOT EXISTS sess(token TEXT PRIMARY KEY, exp INTEGER)`);
     this.sql.exec(`CREATE TABLE IF NOT EXISTS rooms(k TEXT PRIMARY KEY, token TEXT)`);
+    this.sql.exec(`CREATE TABLE IF NOT EXISTS rtokens(token TEXT PRIMARY KEY, data TEXT, exp INTEGER)`);
   }
 
   // ---------- تخزين ----------
@@ -100,11 +103,102 @@ export class QuranDO extends DurableObject {
     this.sql.exec(`INSERT INTO rooms(k,token) VALUES(?,?)`, key, t);
     return t;
   }
-  meetingUrl(order, session, settings) {
+  roomKeyFor(order, session) {
+    return session.kind === "group" ? "g:" + session.start : "o:" + order.id;
+  }
+  meetingUrl(order, session, settings, host = false) {
     if (order.meetingLink) return order.meetingLink;
+    if (settings.meetingProvider === "builtin") {
+      return `/room?c=${order.code}&s=${session.start}${host ? "&host=1" : ""}`;
+    }
     if (settings.fixedMeetingLink) return settings.fixedMeetingLink;
-    const key = session.kind === "group" ? "g:" + session.start : "o:" + order.id;
-    return `https://meet.jit.si/Quran-${this.roomToken(key)}`;
+    return `https://meet.jit.si/Quran-${this.roomToken(this.roomKeyFor(order, session))}`;
+  }
+
+  // ---------- غرفة الاجتماع الخاصة ----------
+  async iceServers() {
+    const base = [{ urls: "stun:stun.cloudflare.com:3478" }];
+    const id = this.env && this.env.TURN_KEY_ID;
+    const tok = this.env && this.env.TURN_KEY_API_TOKEN;
+    if (!id || !tok) return { iceServers: base, turn: false };
+    try {
+      const r = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${id}/credentials/generate-ice-servers`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ ttl: 86400 }),
+      });
+      const j = await r.json();
+      let list = j.iceServers;
+      if (list && !Array.isArray(list)) list = [list];
+      if (r.ok && list && list.length) return { iceServers: list, turn: true };
+    } catch (e) {
+      console.error("turn", e);
+    }
+    return { iceServers: base, turn: false };
+  }
+  makeRoomToken(key, data, exp) {
+    this.sql.exec(`DELETE FROM rtokens WHERE exp<?`, Date.now());
+    const k64 = btoa(key).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const token = k64 + "." + randomString(32, "abcdefghijklmnopqrstuvwxyz0123456789");
+    this.sql.exec(`INSERT INTO rtokens(token,data,exp) VALUES(?,?,?)`, token, JSON.stringify({ ...data, key }), exp);
+    return token;
+  }
+  async roomJoinResponse(key, data, exp) {
+    const settings = this.getSettings();
+    const { iceServers, turn } = await this.iceServers();
+    return json({
+      token: this.makeRoomToken(key, data, exp),
+      role: data.role,
+      name: data.name,
+      end: data.end || null,
+      iceServers,
+      turn,
+      siteName: settings.siteName,
+    });
+  }
+  testRoom(create) {
+    let t = this.kvGet("testRoom");
+    if (!t && create) {
+      t = { id: randomString(10, "abcdefghijkmnpqrstuvwxyz23456789") };
+      this.kvSet("testRoom", t);
+    }
+    return t;
+  }
+  async roomJoin(b, now) {
+    const settings = this.getSettings();
+    if (b.test) {
+      const t = this.testRoom(false);
+      if (!t || t.id !== String(b.test)) throw new HttpError(404, "رابط التجربة غير صالح");
+      const name = String(b.name || "").trim().slice(0, 40) || "ضيف التجربة";
+      return this.roomJoinResponse("t:" + t.id, { role: "student", name, uid: "t-" + randomString(8, "abcdefghijk"), end: null }, now + 6 * 3600000);
+    }
+    const order = this.getOrderByCode(b.code);
+    if (!order) throw new HttpError(404, "مفيش حجز بالكود ده");
+    const s = order.sessions.find((x) => x.start === Number(b.start));
+    if (!s) throw new HttpError(404, "الحصة مش موجودة");
+    const paidOk = order.payment.status === "confirmed" || order.pricing.total === 0;
+    if (order.status !== "active" || s.status !== "scheduled") throw new HttpError(403, "الحصة دي مش شغالة");
+    if (!paidOk) throw new HttpError(403, "الدفع لسه ما اتأكدش");
+    if (now < s.start - settings.joinEarlyMinutes * 60000) throw new HttpError(403, "لسه بدري على الحصة، ارجعي قبل الميعاد بشوية");
+    if (now > s.end + 60 * 60000) throw new HttpError(403, "الحصة دي خلصت");
+    return this.roomJoinResponse(
+      this.roomKeyFor(order, s),
+      { role: "student", name: order.student.name, uid: "s:" + order.code, end: s.end },
+      s.end + 2 * 3600000
+    );
+  }
+  async adminRoomJoin(b, now) {
+    const settings = this.getSettings();
+    const name = settings.teacherName || "المعلم";
+    if (b.test) {
+      const t = this.testRoom(true);
+      return this.roomJoinResponse("t:" + t.id, { role: "host", name, uid: "host", end: null }, now + 12 * 3600000);
+    }
+    const order = this.getOrderByCode(b.code);
+    if (!order) throw new HttpError(404, "الحجز مش موجود");
+    const s = order.sessions.find((x) => x.start === Number(b.start));
+    if (!s) throw new HttpError(404, "الحصة مش موجودة");
+    return this.roomJoinResponse(this.roomKeyFor(order, s), { role: "host", name, uid: "host", end: s.end }, now + 12 * 3600000);
   }
 
   // ---------- عرض الحجز للطالب (من غير بيانات حساسة) ----------
@@ -202,6 +296,18 @@ export class QuranDO extends DurableObject {
     }
 
     if (method === "POST" && path === "/api/book") return this.book(await this.body(request), now);
+
+    if (method === "POST" && path === "/api/room/join") return this.roomJoin(await this.body(request), now);
+
+    // داخلي: بيناديه RoomDO بس (الـ Worker بيمنع الوصول ليه من بره)
+    if (method === "POST" && path === "/api/internal/redeem") {
+      const b = await this.body(request);
+      const r = this.sql.exec(`SELECT data,exp FROM rtokens WHERE token=?`, String(b.token || "")).toArray();
+      if (!r.length || r[0].exp < now) throw new HttpError(403, "تذكرة غير صالحة");
+      const d = JSON.parse(r[0].data);
+      if (d.key !== b.key) throw new HttpError(403, "غرفة غير صحيحة");
+      return json(d);
+    }
 
     if ((m = path.match(/^\/api\/booking\/([A-Za-z0-9]{4,10})$/)) && method === "GET") {
       const order = this.getOrderByCode(m[1]);
@@ -323,12 +429,25 @@ export class QuranDO extends DurableObject {
         return json({ ok: true });
       }
 
+      if (method === "POST" && path === "/api/admin/room-join") return this.adminRoomJoin(await this.body(request), now);
+
+      if (method === "POST" && path === "/api/admin/test-room") {
+        const b = await this.body(request);
+        if (b.renew) this.kvSet("testRoom", null);
+        const t = this.testRoom(true) || (this.kvSet("testRoom", null), this.testRoom(true));
+        return json({ id: t.id });
+      }
+
       if (method === "GET" && path === "/api/admin/data") {
         const settings = this.getSettings();
         const orders = this.allOrders().slice(0, 600).map((o) => ({
           ...o,
           holds: orderHolds(o, now, settings),
-          sessions: o.sessions.map((s) => ({ ...s, joinUrl: this.meetingUrl(o, s, settings) })),
+          sessions: o.sessions.map((s) => ({
+            ...s,
+            joinUrl: this.meetingUrl(o, s, settings, true),
+            studentUrl: this.meetingUrl(o, s, settings, false),
+          })),
         }));
         return json({ settings, orders, now });
       }
@@ -499,6 +618,23 @@ export class QuranDO extends DurableObject {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/room/ws") {
+      const tok = url.searchParams.get("token") || "";
+      let key = "";
+      try {
+        const k64 = tok.split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
+        key = atob(k64 + "=".repeat((4 - (k64.length % 4)) % 4));
+      } catch {
+        return new Response("bad token", { status: 400 });
+      }
+      if (!key) return new Response("bad token", { status: 400 });
+      const origin = request.headers.get("Origin");
+      if (origin && new URL(origin).host !== url.host) return new Response("forbidden", { status: 403 });
+      const headers = new Headers(request.headers);
+      headers.set("x-room-key", key);
+      return env.ROOM.get(env.ROOM.idFromName(key)).fetch(new Request(request, { headers }));
+    }
+    if (url.pathname.startsWith("/api/internal")) return new Response("not found", { status: 404 });
     if (url.pathname.startsWith("/api/")) {
       const stub = env.QURAN.get(env.QURAN.idFromName("main"));
       return stub.fetch(request);

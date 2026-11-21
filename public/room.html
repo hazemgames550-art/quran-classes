@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>غرفة الحصة</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#070707">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  body { display: flex; flex-direction: column; }
+  /* ===== بوابة الدخول ===== */
+  #gate { position: fixed; inset: 0; z-index: 100; overflow-y: auto; display: grid; place-items: center; padding: 16px; background: radial-gradient(900px 500px at 50% 0, rgba(212,175,55,.14), transparent 60%), var(--bg); }
+  .gatecard { width: min(520px, 100%); text-align: center; }
+  .gatecard h2 { font-family: "Amiri", serif; color: var(--gold-light); font-size: 1.7rem; }
+  #pvwrap { position: relative; aspect-ratio: 4/3; max-height: 300px; margin: 14px auto; border-radius: 16px; overflow: hidden; border: 1px solid var(--line-strong); background: #000; }
+  #pvwrap video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+  #pvwrap .noc { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); background: #0d0c08; }
+  .pvbtns { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .tip { color: var(--muted); font-size: .86rem; margin-top: 10px; }
+  .meter { height: 6px; border-radius: 6px; background: #1a1810; margin: 6px auto 12px; width: 70%; overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--gold-grad); transition: width .08s; }
+
+  /* ===== الغرفة ===== */
+  #app { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; z-index: 2; }
+  .rtop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: rgba(7,7,7,.9); }
+  .rtop .brand { font-size: 1.05rem; }
+  .rtop .chips { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .banner { background: rgba(232,182,74,.12); color: var(--warn); padding: 6px 14px; font-size: .88rem; text-align: center; border-bottom: 1px solid rgba(232,182,74,.3); }
+  .body { flex: 1; display: flex; min-height: 0; }
+  .stage { flex: 1; position: relative; min-width: 0; padding: 10px; overflow-y: auto; }
+  #tiles { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); grid-auto-rows: minmax(190px, 1fr); height: 100%; align-content: stretch; }
+  #tiles[data-count="1"] { grid-template-columns: 1fr; }
+  .tile { position: relative; border-radius: 16px; overflow: hidden; background: #0d0c08; border: 2px solid var(--line); min-height: 160px; transition: border-color .2s, box-shadow .2s; }
+  .tile.speaking { border-color: var(--gold); box-shadow: 0 0 22px rgba(212,175,55,.55); }
+  .tile video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+  .tile.self video { transform: scaleX(-1); }
+  .tile.sharing video { transform: none !important; object-fit: contain; }
+  .tile .avatar { position: absolute; inset: 0; display: none; place-items: center; background: radial-gradient(circle at 50% 40%, #241e0d, #0b0a07); }
+  .tile.nocam .avatar { display: grid; }
+  .tile .avatar span { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font-family: "Amiri", serif; font-size: 2.4rem; color: #1a1405; background: var(--gold-grad); }
+  .tile .nm { position: absolute; bottom: 8px; right: 8px; left: 8px; display: flex; align-items: center; gap: 6px; font-size: .9rem; }
+  .tile .nm .nmt { background: rgba(0,0,0,.65); padding: 1px 10px; border-radius: 999px; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tile .ic { background: rgba(0,0,0,.65); border-radius: 50%; width: 26px; height: 26px; display: none; place-items: center; font-size: .85rem; }
+  .tile .ic.show { display: grid; }
+  .tile .ic.red { background: rgba(229,100,90,.85); }
+  .tile .q { position: absolute; top: 8px; right: 8px; width: 11px; height: 11px; border-radius: 50%; background: #666; box-shadow: 0 0 0 2px rgba(0,0,0,.5); }
+  .tile .q.good { background: var(--ok); } .tile .q.mid { background: var(--warn); } .tile .q.bad { background: var(--bad); }
+  .tile .tmenu { position: absolute; top: 6px; left: 6px; width: 30px; height: 30px; border-radius: 50%; border: 0; cursor: pointer; background: rgba(0,0,0,.65); color: var(--gold-light); font-size: 1.1rem; }
+  .menu { position: fixed; z-index: 300; background: #15130d; border: 1px solid var(--gold); border-radius: 12px; padding: 6px; min-width: 170px; box-shadow: var(--shadow); }
+  .menu button { display: block; width: 100%; text-align: right; background: none; border: 0; color: var(--text); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+  .menu button:hover { background: rgba(212,175,55,.14); }
+  .menu button.dng { color: var(--bad); }
+
+  /* ===== اللوحة الجانبية ===== */
+  #side { width: 340px; border-inline-start: 1px solid var(--line); background: rgba(10,9,6,.96); display: none; flex-direction: column; min-height: 0; }
+  #side.open { display: flex; }
+  .sidehead { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--gold-light); font-weight: 700; }
+  .sidehead button { background: none; border: 0; color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+  .sidebody { flex: 1; overflow-y: auto; padding: 10px 12px; min-height: 0; }
+  .msg { margin-bottom: 10px; max-width: 92%; }
+  .msg .who { font-size: .78rem; color: var(--muted); }
+  .msg .bub { background: rgba(212,175,55,.1); border: 1px solid var(--line); border-radius: 12px; padding: 6px 12px; word-break: break-word; white-space: pre-wrap; }
+  .msg.mine { margin-inline-start: auto; }
+  .msg.mine .bub { background: rgba(212,175,55,.22); }
+  .msg.host .who { color: var(--gold); }
+  .chatform { display: flex; gap: 6px; padding: 10px; border-top: 1px solid var(--line); }
+  .chatform input { flex: 1; }
+  .person { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: .93rem; }
+  .person .acts { display: flex; gap: 4px; }
+  .person .acts button { padding: 2px 8px; border-radius: 8px; border: 1px solid var(--line); background: none; color: var(--text); cursor: pointer; font-size: .78rem; }
+  .sec { margin: 8px 0; color: var(--gold-light); font-size: .9rem; }
+  .hostset label { display: flex; gap: 8px; align-items: center; padding: 4px 0; cursor: pointer; }
+  .hostset input { width: 18px; height: 18px; accent-color: #d4af37; }
+
+  /* ===== أزرار التحكم ===== */
+  .controls { display: flex; justify-content: center; gap: 8px; padding: 10px 8px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(7,7,7,.95); flex-wrap: wrap; }
+  .cb { position: relative; min-width: 58px; padding: 8px 10px; border-radius: 14px; border: 1px solid var(--line-strong); background: rgba(212,175,55,.06); color: var(--text); cursor: pointer; text-align: center; font-size: 1.25rem; line-height: 1.2; }
+  .cb small { display: block; font-size: .66rem; color: var(--muted); font-family: "Cairo", sans-serif; }
+  .cb.on { background: var(--gold-grad); color: #1a1405; border-color: transparent; }
+  .cb.on small { color: #3a2e08; }
+  .cb.off { background: rgba(229,100,90,.2); border-color: rgba(229,100,90,.6); }
+  .cb.leave { background: #c0392b; border-color: transparent; color: #fff; }
+  .cb[disabled] { opacity: .35; cursor: not-allowed; }
+  .cb .dot { position: absolute; top: -5px; left: -5px; background: var(--bad); color: #fff; min-width: 18px; height: 18px; border-radius: 9px; font-size: .7rem; display: none; place-items: center; font-family: "Cairo", sans-serif; padding: 0 4px; }
+  .cb .dot.show { display: grid; }
+
+  #wait { position: absolute; inset: 0; z-index: 20; display: none; place-items: center; background: rgba(7,7,7,.88); text-align: center; padding: 20px; }
+  #wait.show { display: grid; }
+  .toastR { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: #15130d; border: 1px solid var(--gold); color: var(--gold-light); padding: 6px 18px; border-radius: 999px; z-index: 400; opacity: 0; transition: opacity .3s; pointer-events: none; max-width: 90vw; text-align: center; }
+  .toastR.show { opacity: 1; }
+  .hidden { display: none !important; }
+
+  @media (max-width: 760px) {
+    #side { position: fixed; top: 0; left: 0; right: 0; bottom: var(--ctlh, 90px); width: auto; z-index: 150; }
+    .rtop .brand span:last-child { display: none; }
+    .cb { min-width: 52px; padding: 6px 8px; font-size: 1.1rem; }
+    #tiles { grid-auto-rows: minmax(150px, 1fr); }
+    #tiles[data-count="2"] { grid-template-columns: 1fr; grid-auto-rows: 1fr; }
+    #tiles[data-count="2"] .tile.self { position: absolute; width: 105px; height: 140px; min-height: 0; bottom: 14px; left: 14px; z-index: 5; border-color: var(--gold); }
+    #tiles[data-count="2"] .tile.self .nm { display: none; }
+    #tiles[data-count="2"] .tile.self .avatar span { width: 46px; height: 46px; font-size: 1.3rem; }
+    .stage { position: relative; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ بوابة الدخول والمعاينة ============ -->
+<div id="gate">
+  <div class="card gatecard">
+    <div style="display:flex;justify-content:center"><span id="brandIcon" style="width:36px;height:36px;display:inline-block"></span></div>
+    <h2 id="gateTitle">غرفة الحصة</h2>
+    <div id="gateSub" style="color:var(--muted);font-size:.95rem">جهّزي الميكروفون والكاميرا قبل الدخول</div>
+    <div id="pvwrap"><video id="pv" autoplay playsinline muted></video><div class="noc" id="pvno">جاري تشغيل الكاميرا…</div></div>
+    <div class="meter"><i id="pvlevel"></i></div>
+    <div class="pvbtns">
+      <button class="cb on" id="pMic">🎙️<small>الميكروفون</small></button>
+      <button class="cb on" id="pCam">📷<small>الكاميرا</small></button>
+      <button class="cb" id="pHq" title="يقفل فلتر تقليل الضوضاء علشان صوت التلاوة يبقى أنقى">🎼<small>صوت التلاوة</small></button>
+    </div>
+    <div id="nameBox" class="field hidden"><input type="text" id="gname" placeholder="اسمك" maxlength="40"></div>
+    <div id="gerr" class="err"></div>
+    <button class="btn btn-gold" id="goBtn" style="width:100%">ادخل الغرفة</button>
+    <div class="tip">🎧 استخدمي سماعة أذن علشان ما يحصلش صدى. وسيبي الموبايل ثابت في مكان فيه نت كويس.</div>
+    <div class="tip" id="backLink"></div>
+  </div>
+</div>
+
+<!-- ============ الغرفة ============ -->
+<div id="app" class="hidden">
+  <div class="rtop">
+    <a class="brand" style="text-decoration:none"><span id="brandIcon2" style="width:26px;height:26px;display:inline-block"></span><span id="siteName">غرفة الحصة</span></a>
+    <div class="chips"><span class="badge" id="timer" title="الوقت المتبقي في الحصة"></span><span class="badge mute" id="count"></span></div>
+  </div>
+  <div id="banner" class="banner hidden"></div>
+  <div class="body">
+    <div class="stage" id="stage">
+      <div id="tiles" data-count="1"></div>
+      <div id="wait"><div class="card" style="max-width:380px"><div style="font-size:2.4rem">⏳</div><h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.5rem" id="waitT">في انتظار المعلم</h3><p style="color:var(--muted)" id="waitS">هيتم قبولك في الغرفة بعد قليل إن شاء الله.</p></div></div>
+    </div>
+    <aside id="side">
+      <div class="sidehead"><span id="sideTitle"></span><button id="sideClose" aria-label="إغلاق">✕</button></div>
+      <div class="sidebody" id="sideBody"></div>
+      <form class="chatform hidden" id="chatForm"><input type="text" id="chatIn" maxlength="500" placeholder="اكتبي رسالة…" autocomplete="off"><button class="btn btn-gold btn-small" type="submit">إرسال</button></form>
+    </aside>
+  </div>
+  <div class="controls" id="controls">
+    <button class="cb on" id="bMic">🎙️<small>ميكروفون</small></button>
+    <button class="cb on" id="bCam">📷<small>كاميرا</small></button>
+    <button class="cb" id="bHq" title="صوت عالي الجودة للتلاوة (من غير فلتر ضوضاء)">🎼<small>صوت التلاوة</small></button>
+    <button class="cb" id="bLow" title="يقفل الفيديو كله ويوفر النت">📶<small>صوت فقط</small></button>
+    <button class="cb hidden" id="bShare" title="مشاركة الشاشة">🖥️<small>مشاركة</small></button>
+    <button class="cb" id="bHand">✋<small>رفع يد</small></button>
+    <button class="cb" id="bChat">💬<small>شات</small><span class="dot" id="chatDot">0</span></button>
+    <button class="cb" id="bPeople">👥<small>الحضور</small><span class="dot" id="peopleDot">0</span></button>
+    <button class="cb leave" id="bLeave">📞<small style="color:#ffd">خروج</small></button>
+  </div>
+</div>
+<div class="toastR" id="rtoast"></div>
+
+<script src="/common.js"></script>
+<script>
+// ======================= الإعدادات والحالة =======================
+const qs = new URLSearchParams(location.search);
+const MODE = { code: (qs.get("c") || "").toUpperCase(), start: qs.get("s"), test: qs.get("test"), host: qs.get("host") === "1" };
+const ADMIN_TOKEN = localStorage.getItem("adminToken") || "";
+let ICE = [], TOKEN = "", END = null, myId = "", ws = null, hb = null, reconnectTimer = null, wsTries = 0;
+const ME = { name: "", role: "student" };
+const meta = new Map();      // peerId -> {id,name,role,hand,mic,cam}
+const conns = new Map();     // peerId -> connection object
+const S = {
+  mic: true, cam: true, hq: false, audioOnly: false, hand: false, sharing: false, left: false, admitted: false,
+  state: { lobby: true, locked: false, chat: true }, hostPresent: false, panel: null, unread: 0, lobbyList: [],
+};
+let local = null, micTrack = null, camTrack = null, screenTrack = null;
+let chatLog = [];
+const isHost = () => ME.role === "host";
+
+const rtoastEl = $("#rtoast");
+let rtT;
+function note(msg) { rtoastEl.textContent = msg; rtoastEl.classList.add("show"); clearTimeout(rtT); rtT = setTimeout(() => rtoastEl.classList.remove("show"), 2800); }
+
+let AC = null;
+function audioCtx() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch {} } if (AC && AC.state === "suspended") AC.resume().catch(() => {}); return AC; }
+function beep() { const a = audioCtx(); if (!a) return; try { const o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = 0.05; o.start(); o.stop(a.currentTime + 0.15); } catch {} }
+
+// ======================= الميديا المحلية =======================
+async function getMedia(hq) {
+  const audio = { echoCancellation: true, noiseSuppression: !hq, autoGainControl: !hq, channelCount: 1 };
+  const video = { width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 24, max: 30 }, facingMode: "user" };
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return null;
+  try { return await navigator.mediaDevices.getUserMedia({ audio, video }); } catch {}
+  try { return await navigator.mediaDevices.getUserMedia({ audio }); } catch {}
+  try { return await navigator.mediaDevices.getUserMedia({ video }); } catch {}
+  return null;
+}
+function stopLocal() { if (local) local.getTracks().forEach((t) => t.stop()); local = null; micTrack = camTrack = null; }
+
+let levelTimer = null;
+function watchLevel(stream, cb) {
+  const a = audioCtx();
+  if (!a || !stream || !stream.getAudioTracks().length) return () => {};
+  let src, an;
+  try { src = a.createMediaStreamSource(stream); an = a.createAnalyser(); an.fftSize = 512; src.connect(an); } catch { return () => {}; }
+  const buf = new Uint8Array(an.fftSize);
+  const t = setInterval(() => {
+    an.getByteTimeDomainData(buf);
+    let s = 0; for (const v of buf) { const x = (v - 128) / 128; s += x * x; }
+    cb(Math.sqrt(s / buf.length));
+  }, 160);
+  return () => { clearInterval(t); try { src.disconnect(); } catch {} };
+}
+
+// ======================= بوابة الدخول =======================
+let stopPvLevel = () => {};
+async function startPreview() {
+  stopPvLevel(); stopLocal();
+  $("#pvno").textContent = "جاري تشغيل الكاميرا…"; $("#pvno").classList.remove("hidden");
+  local = await getMedia(S.hq);
+  micTrack = local && local.getAudioTracks()[0] || null;
+  camTrack = local && local.getVideoTracks()[0] || null;
+  $("#pv").srcObject = local;
+  $("#pvno").classList.toggle("hidden", !!camTrack && S.cam);
+  if (!local) $("#pvno").textContent = "مش قادرين نوصل للكاميرا والميكروفون. اسمحي بالإذن من إعدادات المتصفح، أو ادخلي للاستماع فقط.";
+  else if (!camTrack) $("#pvno").textContent = "الكاميرا مش شغالة";
+  S.mic = !!micTrack; S.cam = !!camTrack;
+  if (micTrack) micTrack.enabled = S.mic; if (camTrack) camTrack.enabled = S.cam;
+  syncGate();
+  stopPvLevel = watchLevel(local, (lv) => { const el = $("#pvlevel"); if (el) el.style.width = Math.min(100, lv * 400) + "%"; });
+}
+function syncGate() {
+  $("#pMic").classList.toggle("on", S.mic); $("#pMic").classList.toggle("off", !S.mic);
+  $("#pCam").classList.toggle("on", S.cam); $("#pCam").classList.toggle("off", !S.cam);
+  $("#pHq").classList.toggle("on", S.hq);
+  $("#pvno").classList.toggle("hidden", !!camTrack && S.cam);
+  if (camTrack && !S.cam) $("#pvno").textContent = "الكاميرا مقفولة";
+}
+$("#pMic").onclick = () => { if (!micTrack) return; S.mic = !S.mic; micTrack.enabled = S.mic; syncGate(); };
+$("#pCam").onclick = () => { if (!camTrack) return; S.cam = !S.cam; camTrack.enabled = S.cam; syncGate(); };
+$("#pHq").onclick = async () => { S.hq = !S.hq; const m = S.mic, c = S.cam; await startPreview(); S.mic = !!micTrack && m; S.cam = !!camTrack && c; if (micTrack) micTrack.enabled = S.mic; if (camTrack) camTrack.enabled = S.cam; syncGate(); };
+
+async function requestJoin() {
+  if (MODE.host) {
+    if (!ADMIN_TOKEN) throw new Error("لازم تسجل دخول لوحة التحكم الأول");
+    return api("/api/admin/room-join", { method: "POST", token: ADMIN_TOKEN, body: MODE.test ? { test: true } : { code: MODE.code, start: MODE.start } });
+  }
+  return api("/api/room/join", { method: "POST", body: MODE.test ? { test: MODE.test, name: $("#gname").value } : { code: MODE.code, start: MODE.start } });
+}
+
+$("#goBtn").onclick = async () => {
+  const b = $("#goBtn"); b.disabled = true; $("#gerr").textContent = "";
+  audioCtx();
+  try {
+    const r = await requestJoin();
+    TOKEN = r.token; ICE = r.iceServers; END = r.end; ME.role = r.role; ME.name = r.name;
+    $("#siteName").textContent = r.siteName || "غرفة الحصة";
+    stopPvLevel(); $("#gate").classList.add("hidden"); $("#app").classList.remove("hidden");
+    if (isHost() && !r.turn) { const bn = $("#banner"); bn.textContent = "تنبيه: خدمة TURN لسه ما اتفعلتش، فممكن بعض الشبكات (خصوصًا شبكات الموبايل) ما تقدرش تتصل بالفيديو. شوفي خطوات التفعيل في ملف README."; bn.classList.remove("hidden"); }
+    buildUi(); connectWs(); wakeLock();
+  } catch (e) {
+    $("#gerr").textContent = e.message; b.disabled = false;
+  }
+};
+
+// ======================= الاتصال بالسيرفر =======================
+function sendWs(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
+function connectWs() {
+  clearTimeout(reconnectTimer);
+  ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/room/ws?token=${encodeURIComponent(TOKEN)}`);
+  ws.onopen = () => { wsTries = 0; $("#banner").classList.contains("conn") && $("#banner").classList.add("hidden"); clearInterval(hb); hb = setInterval(() => { if (ws.readyState === 1) ws.send("ping"); }, 25000); };
+  ws.onmessage = (e) => { if (e.data === "pong") return; let m; try { m = JSON.parse(e.data); } catch { return; } onServer(m).catch((er) => console.error(er)); };
+  ws.onclose = (e) => {
+    clearInterval(hb);
+    if (S.left || [4001, 4002, 4003, 4004].includes(e.code)) return;
+    closeAllConns();
+    const bn = $("#banner"); bn.textContent = "الاتصال انقطع، جاري إعادة المحاولة…"; bn.classList.add("conn"); bn.classList.remove("hidden");
+    wsTries++;
+    if (wsTries > 12) return endScreen("انقطع الاتصال", "تأكدي من النت وافتحي الرابط تاني.");
+    reconnectTimer = setTimeout(connectWs, Math.min(1000 * wsTries, 5000));
+  };
+}
+
+async function onServer(m) {
+  switch (m.t) {
+    case "welcome":
+      myId = m.id; ME.role = m.role; S.state = m.state; S.hostPresent = m.hostPresent; if (m.end) END = m.end;
+      resetRoom();
+      chatLog = m.chat || []; S.lobbyList = m.lobby || [];
+      $("#banner").classList.contains("conn") && $("#banner").classList.add("hidden");
+      if (m.waiting) showWait(); else enterRoom(m.peers);
+      renderPanel(); applyState();
+      break;
+    case "admitted":
+      S.state = m.state; S.hostPresent = m.hostPresent; chatLog = m.chat || [];
+      enterRoom(m.peers); renderPanel(); applyState();
+      note("تم قبولك في الغرفة ✓");
+      break;
+    case "peer-joined":
+      meta.set(m.peer.id, m.peer); addTile(m.peer.id); updateCount();
+      note(`${m.peer.name} انضم`); if (isHost()) beep();
+      renderPanel();
+      break;
+    case "peer-left": {
+      const p = meta.get(m.id); closeConn(m.id); meta.delete(m.id); removeTile(m.id); updateCount();
+      if (p) note(`${p.name} خرج`);
+      renderPanel(); break;
+    }
+    case "peer-state": {
+      const p = meta.get(m.id); if (!p) break;
+      const wasHand = p.hand;
+      Object.assign(p, { mic: m.mic, cam: m.cam, hand: m.hand });
+      refreshTile(m.id); renderPanel(); updateHandDot();
+      if (m.hand && !wasHand && isHost()) { beep(); note(`✋ ${p.name} رفع يده`); }
+      break;
+    }
+    case "signal": await onSignal(m.from, m.data); break;
+    case "chat":
+      chatLog.push(m.msg); if (chatLog.length > 200) chatLog.shift();
+      if (S.panel === "chat") { appendMsg(m.msg); scrollChat(); }
+      else if (m.msg.from !== myId) { S.unread++; updateDots(); beep(); }
+      break;
+    case "chat-cleared": chatLog = []; if (S.panel === "chat") renderPanel(); break;
+    case "chat-blocked": note("المعلم قفل الشات"); break;
+    case "state": S.state = m.state; applyState(); renderPanel(); break;
+    case "lobby": {
+      const grew = m.list.length > S.lobbyList.length; S.lobbyList = m.list;
+      if (grew && isHost()) { beep(); note("طالبة في غرفة الانتظار"); }
+      renderPanel(); updateDots(); break;
+    }
+    case "host-present":
+      S.hostPresent = m.value; if (!S.admitted) showWait();
+      else if (!isHost()) note(m.value ? "المعلم انضم" : "المعلم خرج من الغرفة");
+      break;
+    case "force":
+      if (m.what === "mute") { setMic(false); note("المعلم كتم الميكروفون"); }
+      if (m.what === "cam-off") { setCam(false); note("المعلم قفل الكاميرا"); }
+      break;
+    case "kicked": endScreen("تم إخراجك من الغرفة", "لو ده حصل بالغلط كلمي المعلم."); break;
+    case "ended": endScreen("انتهت الحصة", "جزاكم الله خيرًا، نراكم في الحصة القادمة إن شاء الله."); break;
+    case "denied":
+      endScreen(m.reason === "locked" ? "الغرفة مقفولة" : m.reason === "full" ? "الغرفة ممتلئة" : "لم يتم قبولك في الغرفة", m.reason === "locked" ? "المعلم قفل الغرفة، كلميه على الواتساب." : "كلمي المعلم على الواتساب.");
+      break;
+    case "replaced": endScreen("اتفتحت الغرفة من جهاز تاني", "الغرفة شغالة على الجهاز الأحدث."); break;
+  }
+}
+
+function endScreen(title, sub) {
+  S.left = true; clearInterval(hb); closeAllConns(); stopPvLevel(); stopLocal(); try { ws && ws.close(); } catch {}
+  $("#app").classList.add("hidden");
+  $("#gate").classList.remove("hidden");
+  $("#gate .gatecard").innerHTML = `<div style="font-size:2.4rem">🕋</div><h2>${esc(title)}</h2><p style="color:var(--muted);margin:10px 0 18px">${esc(sub || "")}</p>${backHtml()}`;
+}
+function backHtml() {
+  if (MODE.host) return `<a class="btn btn-gold" href="/admin">لوحة التحكم</a>`;
+  if (MODE.code) return `<a class="btn btn-gold" href="/booking?c=${encodeURIComponent(MODE.code)}">صفحة حجزي</a>`;
+  return `<a class="btn btn-gold" href="/">الرئيسية</a>`;
+}
+
+// ======================= الغرفة والتايلز =======================
+function resetRoom() {
+  closeAllConns(); meta.clear(); S.admitted = false;
+  $("#tiles").innerHTML = "";
+}
+function showWait() {
+  $("#wait").classList.add("show");
+  $("#waitT").textContent = S.hostPresent ? "في انتظار قبول المعلم لك" : "في انتظار المعلم";
+  $("#waitS").textContent = S.hostPresent ? "هيتم قبولك في الغرفة بعد قليل إن شاء الله." : "المعلم لسه ما دخلش الغرفة، ابقي على الصفحة وهتدخلي أوتوماتيك لما يقبلك.";
+}
+function enterRoom(peers) {
+  S.admitted = true; $("#wait").classList.remove("show");
+  $("#tiles").innerHTML = "";
+  addTile("self");
+  for (const p of peers) { meta.set(p.id, p); addTile(p.id); }
+  for (const p of peers) createConn(p.id);
+  updateCount(); sendState(); updateHandDot();
+}
+const selfMeta = () => ({ id: "self", name: ME.name + " (أنا)", role: ME.role, mic: S.mic, cam: S.cam || S.sharing, hand: S.hand });
+function addTile(id) {
+  if (document.getElementById("tile-" + id)) return;
+  const d = document.createElement("div");
+  d.className = "tile" + (id === "self" ? " self" : ""); d.id = "tile-" + id;
+  d.innerHTML = `<video autoplay playsinline></video><div class="avatar"><span></span></div><div class="nm"><span class="nmt"></span><span class="ic mic red">🔇</span><span class="ic hand">✋</span></div><div class="q"></div>${isHost() && id !== "self" ? `<button class="tmenu" aria-label="خيارات">⋮</button>` : ""}`;
+  const v = $("video", d);
+  if (id === "self") { v.muted = true; v.srcObject = local; if (local) v.play().catch(() => {}); }
+  $("#tiles").appendChild(d);
+  const tm = $(".tmenu", d); if (tm) tm.onclick = (e) => { e.stopPropagation(); openMenu(id, tm); };
+  refreshTile(id); updateGrid();
+  if (id === "self" && local) selfLevelStop = watchLevel(local, (lv) => d.classList.toggle("speaking", S.mic && lv > 0.035));
+}
+let selfLevelStop = () => {};
+function removeTile(id) { const d = document.getElementById("tile-" + id); if (d) d.remove(); updateGrid(); }
+function refreshTile(id) {
+  const d = document.getElementById("tile-" + id); if (!d) return;
+  const m = id === "self" ? selfMeta() : meta.get(id); if (!m) return;
+  $(".nmt", d).textContent = (m.role === "host" ? "👑 " : "") + m.name;
+  $(".avatar span", d).textContent = (m.name || "؟").trim().charAt(0);
+  $(".mic", d).classList.toggle("show", m.mic === false);
+  $(".hand", d).classList.toggle("show", !!m.hand);
+  d.classList.toggle("nocam", m.cam === false);
+  d.classList.toggle("sharing", id === "self" && S.sharing);
+}
+function updateGrid() { const n = $$(".tile").length; $("#tiles").dataset.count = n; }
+function updateCount() { $("#count").textContent = `👥 ${meta.size + 1}`; }
+
+// ======================= WebRTC =======================
+function createConn(id) {
+  if (conns.has(id)) return conns.get(id);
+  const pc = new RTCPeerConnection({ iceServers: ICE });
+  const c = { id, pc, polite: myId > id, makingOffer: false, ignoreOffer: false, stream: new MediaStream(), videoSender: null, audioSender: null, wantsVideo: true, last: null, stopLevel: null, q: "" };
+  conns.set(id, c);
+  if (local) {
+    for (const t of local.getTracks()) {
+      const snd = pc.addTrack(t, local);
+      if (t.kind === "video") c.videoSender = snd; else c.audioSender = snd;
+    }
+  }
+  if (!local || !local.getAudioTracks().length) pc.addTransceiver("audio", { direction: "recvonly" });
+  if (!local || !local.getVideoTracks().length) pc.addTransceiver("video", { direction: "recvonly" });
+  pc.ontrack = (e) => {
+    if (e.streams[0]) c.stream = e.streams[0]; else c.stream.addTrack(e.track);
+    attachRemote(c);
+    e.track.onunmute = () => attachRemote(c);
+  };
+  pc.onicecandidate = (e) => { if (e.candidate) sendWs({ t: "signal", to: id, data: { candidate: e.candidate } }); };
+  pc.onnegotiationneeded = async () => {
+    try { c.makingOffer = true; await pc.setLocalDescription(); sendWs({ t: "signal", to: id, data: { description: pc.localDescription } }); }
+    catch (e) { console.error("neg", e); } finally { c.makingOffer = false; }
+  };
+  pc.oniceconnectionstatechange = () => {
+    if (pc.iceConnectionState === "failed") { try { pc.restartIce(); } catch {} }
+    if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") applySenderParams();
+  };
+  if (S.audioOnly) setTimeout(() => sendWs({ t: "signal", to: id, data: { ctl: { video: false } } }), 50);
+  return c;
+}
+function attachRemote(c) {
+  const d = document.getElementById("tile-" + c.id); if (!d) return;
+  const v = $("video", d);
+  if (v.srcObject !== c.stream) { v.srcObject = c.stream; }
+  v.play().catch(() => {});
+  if (!c.stopLevel && c.stream.getAudioTracks().length) c.stopLevel = watchLevel(c.stream, (lv) => d.classList.toggle("speaking", lv > 0.03));
+}
+async function onSignal(from, data) {
+  if (!S.admitted || !data) return;
+  const c = conns.get(from) || createConn(from);
+  if (data.ctl) {
+    if (typeof data.ctl.video === "boolean") { c.wantsVideo = data.ctl.video; applyVideoSend(c); }
+    return;
+  }
+  try {
+    if (data.description) {
+      const d = data.description;
+      const collision = d.type === "offer" && (c.makingOffer || c.pc.signalingState !== "stable");
+      c.ignoreOffer = !c.polite && collision;
+      if (c.ignoreOffer) return;
+      await c.pc.setRemoteDescription(d);
+      if (d.type === "offer") { await c.pc.setLocalDescription(); sendWs({ t: "signal", to: from, data: { description: c.pc.localDescription } }); }
+    } else if (data.candidate) {
+      try { await c.pc.addIceCandidate(data.candidate); } catch (e) { if (!c.ignoreOffer) throw e; }
+    }
+  } catch (e) { console.error("signal", e); }
+}
+function closeConn(id) {
+  const c = conns.get(id); if (!c) return;
+  try { c.stopLevel && c.stopLevel(); } catch {} try { c.pc.close(); } catch {}
+  conns.delete(id);
+}
+function closeAllConns() { for (const id of [...conns.keys()]) closeConn(id); try { selfLevelStop(); } catch {} }
+
+// المسار الحالي للفيديو اللي بنبعته (كاميرا أو شاشة)
+const outVideoTrack = () => (S.sharing && screenTrack ? screenTrack : camTrack);
+function applyVideoSend(c) {
+  if (!c.videoSender) return;
+  const t = c.wantsVideo ? outVideoTrack() : null;
+  c.videoSender.replaceTrack(t).catch(() => {});
+}
+async function applySenderParams() {
+  for (const c of conns.values()) {
+    for (const [snd, bps] of [[c.audioSender, S.hq ? 64000 : 32000], [c.videoSender, S.sharing ? 1200000 : 400000]]) {
+      if (!snd) continue;
+      try {
+        const p = snd.getParameters(); if (!p.encodings || !p.encodings.length) p.encodings = [{}];
+        p.encodings[0].maxBitrate = bps;
+        await snd.setParameters(p);
+      } catch {}
+    }
+  }
+}
+
+// ======================= جودة الاتصال =======================
+setInterval(async () => {
+  for (const c of conns.values()) {
+    try {
+      const stats = await c.pc.getStats();
+      let rec = 0, lost = 0, jit = 0, rtt = null;
+      stats.forEach((r) => {
+        if (r.type === "inbound-rtp" && r.kind === "audio") { rec = r.packetsReceived || 0; lost = r.packetsLost || 0; jit = r.jitter || 0; }
+        if (r.type === "candidate-pair" && r.state === "succeeded" && r.nominated && r.currentRoundTripTime != null) rtt = r.currentRoundTripTime;
+      });
+      let q = "";
+      if (c.last) {
+        const dr = rec - c.last.rec, dl = lost - c.last.lost;
+        const frac = dr + dl > 0 ? dl / (dr + dl) : 0;
+        if (dr <= 0) q = "bad"; else if (frac > 0.08 || jit > 0.08 || (rtt && rtt > 0.6)) q = "bad"; else if (frac > 0.03 || jit > 0.04 || (rtt && rtt > 0.35)) q = "mid"; else q = "good";
+      }
+      c.last = { rec, lost };
+      const d = document.getElementById("tile-" + c.id);
+      if (d) { const qq = $(".q", d); qq.className = "q " + q; qq.title = q === "good" ? "اتصال ممتاز" : q === "mid" ? "اتصال متوسط" : q === "bad" ? "الصوت بيتقطع (النت ضعيف)" : ""; }
+    } catch {}
+  }
+}, 4000);
+
+// ======================= التحكم المحلي =======================
+function sendState() { sendWs({ t: "state", mic: S.mic, cam: S.cam || S.sharing, hand: S.hand }); refreshTile("self"); syncButtons(); }
+function setMic(v) { if (!micTrack) { note("مفيش ميكروفون شغال"); return; } S.mic = v; micTrack.enabled = v; sendState(); }
+function setCam(v) {
+  if (!camTrack) { note("مفيش كاميرا شغالة"); return; }
+  if (v && S.audioOnly) { S.audioOnly = false; setAudioOnly(false, true); }
+  S.cam = v; camTrack.enabled = v; sendState();
+}
+function setAudioOnly(v, silent) {
+  S.audioOnly = v;
+  for (const c of conns.values()) sendWs({ t: "signal", to: c.id, data: { ctl: { video: !v } } });
+  for (const c of conns.values()) $$("video", document.getElementById("tile-" + c.id) || document).forEach(() => {});
+  $$(".tile:not(.self) video").forEach((vd) => (vd.style.visibility = v ? "hidden" : "visible"));
+  $$(".tile:not(.self)").forEach((t) => t.classList.toggle("nocam", v || (meta.get(t.id.slice(5)) || {}).cam === false));
+  if (v && camTrack) { S.cam = false; camTrack.enabled = false; }
+  if (!silent) note(v ? "وضع الصوت فقط: الفيديو مقفول لتوفير النت" : "رجع الفيديو");
+  sendState();
+}
+async function setHq(v) {
+  S.hq = v;
+  if (micTrack) { try { await micTrack.applyConstraints({ echoCancellation: true, noiseSuppression: !v, autoGainControl: !v }); } catch {} }
+  applySenderParams(); syncButtons();
+  note(v ? "صوت التلاوة: شغال (من غير فلتر ضوضاء، يفضل سماعة أذن)" : "الصوت العادي (مع تقليل الضوضاء)");
+}
+async function toggleShare() {
+  if (!S.sharing) {
+    if (!navigator.mediaDevices.getDisplayMedia) return note("المتصفح ده مش بيدعم مشاركة الشاشة");
+    try {
+      const st = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 15 }, audio: false });
+      screenTrack = st.getVideoTracks()[0]; S.sharing = true;
+      screenTrack.onended = () => { if (S.sharing) toggleShare(); };
+    } catch { return; }
+  } else {
+    S.sharing = false; try { screenTrack && screenTrack.stop(); } catch {} screenTrack = null;
+  }
+  for (const c of conns.values()) applyVideoSend(c);
+  const sv = $("#tile-self video"); if (sv) sv.srcObject = S.sharing ? new MediaStream([screenTrack]) : local;
+  applySenderParams(); sendState();
+}
+function syncButtons() {
+  const t = (id, on, off) => { const b = $(id); b.classList.toggle("on", !!on); b.classList.toggle("off", !!off); };
+  t("#bMic", S.mic, !S.mic); t("#bCam", S.cam, !S.cam); t("#bHq", S.hq, false); t("#bLow", S.audioOnly, false);
+  t("#bShare", S.sharing, false); t("#bHand", S.hand, false);
+  $("#bMic").disabled = !micTrack; $("#bCam").disabled = !camTrack;
+  $("#bMic small").textContent = S.mic ? "ميكروفون" : "مكتوم";
+}
+function buildUi() {
+  $("#brandIcon2").innerHTML = STAR_SVG;
+  if (isHost() && navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && !/Mobi|Android/i.test(navigator.userAgent)) $("#bShare").classList.remove("hidden");
+  syncButtons();
+  if (END) { const tick = () => { const left = END - Date.now(); const el = $("#timer"); const a = Math.abs(left); const mm = String(Math.floor(a / 60000)).padStart(2, "0"), ss = String(Math.floor((a % 60000) / 1000)).padStart(2, "0"); el.textContent = (left >= 0 ? "⏱ " : "⏱ +") + mm + ":" + ss; el.className = "badge " + (left < 0 ? "bad" : left < 300000 ? "warn" : ""); }; tick(); setInterval(tick, 1000); } else $("#timer").classList.add("hidden");
+}
+$("#bMic").onclick = () => setMic(!S.mic);
+$("#bCam").onclick = () => setCam(!S.cam);
+$("#bHq").onclick = () => setHq(!S.hq);
+$("#bLow").onclick = () => setAudioOnly(!S.audioOnly);
+$("#bShare").onclick = toggleShare;
+$("#bHand").onclick = () => { S.hand = !S.hand; sendState(); note(S.hand ? "رفعتِ يدك ✋" : "نزلتِ يدك"); };
+$("#bChat").onclick = () => openPanel(S.panel === "chat" ? null : "chat");
+$("#bPeople").onclick = () => openPanel(S.panel === "people" ? null : "people");
+$("#sideClose").onclick = () => openPanel(null);
+$("#bLeave").onclick = () => {
+  if (!confirm("تخرجي من الغرفة؟")) return;
+  S.left = true; clearInterval(hb); closeAllConns(); stopLocal(); try { ws.close(); } catch {}
+  location.href = MODE.host ? "/admin" : MODE.code ? `/booking?c=${encodeURIComponent(MODE.code)}` : "/";
+};
+
+// ======================= الشات والحضور =======================
+function fitCtl() { document.documentElement.style.setProperty("--ctlh", $("#controls").offsetHeight + "px"); }
+addEventListener("resize", () => { if (!$("#app").classList.contains("hidden")) fitCtl(); });
+function openPanel(p) {
+  fitCtl();
+  S.panel = p; $("#side").classList.toggle("open", !!p);
+  if (p === "chat") S.unread = 0;
+  renderPanel(); updateDots();
+}
+function updateDots() {
+  const d = $("#chatDot"); d.textContent = S.unread; d.classList.toggle("show", S.unread > 0);
+  const pd = $("#peopleDot"); const n = isHost() ? S.lobbyList.length : 0; pd.textContent = n; pd.classList.toggle("show", n > 0);
+}
+function updateHandDot() {}
+function applyState() {
+  const canChat = S.state.chat || isHost();
+  const f = $("#chatForm"); if (S.panel === "chat") f.classList.remove("hidden");
+  $("#chatIn").disabled = !canChat; $("#chatIn").placeholder = canChat ? "اكتبي رسالة…" : "المعلم قفل الشات";
+}
+function msgHtml(m) {
+  const mine = m.from === myId;
+  return `<div class="msg ${mine ? "mine" : ""} ${m.role === "host" ? "host" : ""}"><div class="who">${esc(m.name)}${m.role === "host" ? " 👑" : ""} · ${fmtTime(m.ts, USER_TZ)}</div><div class="bub">${esc(m.text)}</div></div>`;
+}
+function appendMsg(m) { $("#sideBody").insertAdjacentHTML("beforeend", msgHtml(m)); }
+function scrollChat() { const b = $("#sideBody"); b.scrollTop = b.scrollHeight; }
+function renderPanel() {
+  const p = S.panel; if (!p) return;
+  const body = $("#sideBody"), form = $("#chatForm");
+  if (p === "chat") {
+    $("#sideTitle").textContent = "الشات";
+    body.innerHTML = chatLog.map(msgHtml).join("") || `<p style="color:var(--muted);text-align:center;margin-top:20px">مفيش رسايل لسه.</p>`;
+    form.classList.remove("hidden"); applyState(); scrollChat();
+    return;
+  }
+  form.classList.add("hidden");
+  $("#sideTitle").textContent = "الحضور";
+  const people = [{ id: "self", ...selfMeta() }, ...meta.values()];
+  let h = "";
+  if (isHost()) {
+    if (S.lobbyList.length) {
+      h += `<div class="sec">في غرفة الانتظار (${S.lobbyList.length}) <button class="btn btn-small btn-ok" data-a="admit-all" style="margin-inline-start:6px">قبول الكل</button></div>`;
+      h += S.lobbyList.map((p) => `<div class="person"><span>${esc(p.name)}</span><span class="acts"><button data-a="admit" data-id="${p.id}" style="color:var(--ok)">قبول</button><button data-a="deny" data-id="${p.id}" style="color:var(--bad)">رفض</button></span></div>`).join("");
+    }
+    h += `<div class="sec">إعدادات الغرفة</div><div class="hostset">
+      <label><input type="checkbox" data-set="lobby" ${S.state.lobby ? "checked" : ""}> غرفة الانتظار (أقبل كل واحدة بنفسي)</label>
+      <label><input type="checkbox" data-set="locked" ${S.state.locked ? "checked" : ""}> قفل الغرفة (محدش يدخل)</label>
+      <label><input type="checkbox" data-set="chat" ${S.state.chat ? "checked" : ""}> السماح بالشات للطلاب</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn btn-small" data-a="mute-all">🔇 كتم الكل</button><button class="btn btn-small" data-a="clear-chat">مسح الشات</button><button class="btn btn-small btn-danger" data-a="end">إنهاء الحصة للجميع</button></div></div>`;
+  }
+  h += `<div class="sec">في الغرفة (${people.length})</div>`;
+  h += people.map((p) => `<div class="person"><span>${p.role === "host" ? "👑 " : ""}${esc(p.name)} ${p.hand ? "✋" : ""} ${p.mic === false ? "🔇" : ""} ${p.cam === false ? "📷✕" : ""}</span>${isHost() && p.id !== "self" ? `<span class="acts"><button data-a="mute" data-id="${p.id}">كتم</button><button data-a="cam-off" data-id="${p.id}">قفل كاميرا</button>${p.hand ? `<button data-a="lower-hand" data-id="${p.id}">إنزال اليد</button>` : ""}<button data-a="kick" data-id="${p.id}" style="color:var(--bad)">إخراج</button></span>` : ""}</div>`).join("");
+  body.innerHTML = h;
+  $$("[data-a]", body).forEach((b) => b.onclick = () => hostAction(b.dataset.a, b.dataset.id));
+  $$("[data-set]", body).forEach((x) => x.onchange = () => sendWs({ t: "set", [x.dataset.set]: x.checked }));
+}
+function hostAction(a, id) {
+  if (a === "kick" && !confirm("تخرجي الطالبة من الغرفة؟")) return;
+  if (a === "end" && !confirm("تنهي الحصة وتخرج الكل؟")) return;
+  sendWs({ t: a, id });
+}
+function openMenu(id, anchor) {
+  $$(".menu").forEach((m) => m.remove());
+  const m = document.createElement("div"); m.className = "menu";
+  const p = meta.get(id);
+  m.innerHTML = `<button data-a="mute">🔇 كتم الميكروفون</button><button data-a="cam-off">📷 قفل الكاميرا</button>${p && p.hand ? `<button data-a="lower-hand">✋ إنزال اليد</button>` : ""}<button class="dng" data-a="kick">إخراج من الغرفة</button>`;
+  const r = anchor.getBoundingClientRect(); m.style.top = r.bottom + 4 + "px"; m.style.left = Math.max(8, r.left) + "px";
+  document.body.appendChild(m);
+  $$("button", m).forEach((b) => b.onclick = () => { hostAction(b.dataset.a, id); m.remove(); });
+  setTimeout(() => document.addEventListener("click", () => m.remove(), { once: true }), 0);
+}
+$("#chatForm").onsubmit = (e) => { e.preventDefault(); const i = $("#chatIn"); const t = i.value.trim(); if (!t) return; sendWs({ t: "chat", text: t }); i.value = ""; };
+
+// ======================= متفرقات =======================
+async function wakeLock() { try { if (navigator.wakeLock) { await navigator.wakeLock.request("screen"); document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") navigator.wakeLock.request("screen").catch(() => {}); }); } } catch {} }
+addEventListener("beforeunload", () => { S.left = true; });
+
+(async function init() {
+  initBackground();
+  $("#brandIcon").innerHTML = STAR_SVG;
+  if (MODE.host) { $("#gateTitle").textContent = "غرفة الحصة (المعلم)"; $("#gateSub").textContent = "أنت هتتحكم في الغرفة وهتقبل الطالبات"; }
+  if (MODE.test && !MODE.host) { $("#nameBox").classList.remove("hidden"); $("#gateTitle").textContent = "غرفة تجربة"; }
+  if (MODE.test && MODE.host) $("#gateTitle").textContent = "غرفة تجربة (المعلم)";
+  if (!MODE.test && !(MODE.code && MODE.start)) { $("#gerr").textContent = "الرابط ناقص، افتحي الرابط من صفحة حجزك."; $("#goBtn").disabled = true; }
+  $("#backLink").innerHTML = MODE.host ? `<a href="/admin">رجوع للوحة التحكم</a>` : MODE.code ? `<a href="/booking?c=${encodeURIComponent(MODE.code)}">رجوع لصفحة حجزي</a>` : "";
+  await startPreview();
+})();
+</script>
+</body>
+</html>

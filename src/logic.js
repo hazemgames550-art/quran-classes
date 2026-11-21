@@ -27,7 +27,8 @@ export const DEFAULT_SETTINGS = {
   minNoticeHours: 2,
   maxSessions: 8,
   joinEarlyMinutes: 15,
-  fixedMeetingLink: "", // لو عايز لينك ثابت (Google Meet مثلا) بدل Jitsi
+  meetingProvider: "builtin", // "builtin" = الغرفة الخاصة بالموقع | "jitsi" = Jitsi/لينك خارجي
+  fixedMeetingLink: "", // لينك ثابت (Google Meet مثلا) بيتستخدم لما meetingProvider مش builtin
   rules: [], // [{id, days:[6,1], start:"16:00", end:"20:00", kind:"individual"|"group", capacity:5}]
   blockedDates: [], // ["2026-12-01"]
 };
@@ -239,6 +240,7 @@ export function sanitizeSettings(input, current) {
   if ("minNoticeHours" in input) s.minNoticeHours = num(input.minNoticeHours, 0, 168, 2);
   if ("maxSessions" in input) s.maxSessions = Math.round(num(input.maxSessions, 1, 30, 8));
   if ("joinEarlyMinutes" in input) s.joinEarlyMinutes = Math.round(num(input.joinEarlyMinutes, 0, 120, 15));
+  if ("meetingProvider" in input) s.meetingProvider = input.meetingProvider === "jitsi" ? "jitsi" : "builtin";
   if ("fixedMeetingLink" in input) {
     const l = str(input.fixedMeetingLink, 300);
     s.fixedMeetingLink = /^https:\/\//i.test(l) ? l : "";

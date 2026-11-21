@@ -10,6 +10,14 @@ binding = "ASSETS"
 name = "QURAN"
 class_name = "QuranDO"
 
+[[durable_objects.bindings]]
+name = "ROOM"
+class_name = "RoomDO"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["QuranDO"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["RoomDO"]

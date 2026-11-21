@@ -116,6 +116,7 @@ async function loadData(keepScroll) {
 const pendingCount = () => D.orders.filter((o) => o.status === "active" && o.payment.status === "pending").length;
 const kindLabel = (s, o) => (s.kind === "group" ? "جماعية" : o.isTrial ? "تجريبية" : "فردية");
 const siteUrl = () => location.origin;
+const abs = (u) => (String(u).startsWith("/") ? location.origin + u : u);
 
 function waConfirm(o) {
   const ss = o.sessions.filter((s) => s.status === "scheduled").map((s) => "• " + fmtDateTime(s.start)).join("\n");
@@ -163,7 +164,9 @@ function tabSchedule() {
     <div class="card stat"><b>${rows.length}</b><span>حصص جاية</span></div>
     <div class="card stat"><b>${pendingCount()}</b><span>إيصالات مستنية تأكيدك</span></div>
     <div class="card stat"><b>${active.length}</b><span>حجوزات شغالة</span></div></div>`;
-  let h = stats;
+  let h = stats + `<div class="card" style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+    <div><b style="color:var(--gold-light)">غرفة تجربة</b><div class="meta" style="color:var(--muted);font-size:.9rem">جرّب الصوت والفيديو مع حد من أهلك قبل ما تبدأ مع الطلاب.</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-small btn-gold" id="testHost">افتح الغرفة كمعلم</button><button class="btn btn-small" id="testGuest">انسخ رابط الضيف</button><button class="btn btn-small" id="testRenew" title="يلغي الرابط القديم">رابط جديد</button></div></div>`;
   if (!rows.length) h += `<div class="card" style="text-align:center;color:var(--muted)">مفيش حصص جاية دلوقتي.</div>`;
   const byDay = new Map();
   for (const r of rows) { const k = dayKey(r.s.start); if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(r); }
@@ -182,6 +185,10 @@ function tabSchedule() {
     h += `</div>`;
   }
   $("#tabBody").innerHTML = h;
+  const testId = async (renew) => (await A("/api/admin/test-room", { method: "POST", body: { renew: !!renew } })).id;
+  $("#testHost").onclick = async () => { const w = window.open("", "_blank"); try { const id = await testId(); w.location = `/room?test=${id}&host=1`; } catch (e) { w.close(); toast(e.message, true); } };
+  $("#testGuest").onclick = async () => { try { copyText(`${location.origin}/room?test=${await testId()}`); } catch (e) { toast(e.message, true); } };
+  $("#testRenew").onclick = async () => { try { await testId(true); toast("تم عمل رابط جديد، الرابط القديم اتلغى"); } catch (e) { toast(e.message, true); } };
 }
 
 // ===== الحجوزات =====
@@ -243,8 +250,8 @@ function orderCard(o) {
       <div class="r1"><div><b>${fmtDateTime(s.start)}</b> <span class="badge mute">${kindLabel(s, o)}</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <select data-sstatus>${Object.entries({ scheduled: "محجوزة", done: "تمت", absent: "غياب", cancelled: "ملغاة" }).map(([k, v]) => `<option value="${k}" ${s.status === k ? "selected" : ""}>${v}</option>`).join("")}</select>
-          <a class="btn btn-small" target="_blank" rel="noopener" href="${esc(s.joinUrl)}">رابط الحصة</a>
-          <button class="btn btn-small" data-copy="${esc(s.joinUrl)}">نسخ الرابط</button>
+          <a class="btn btn-small btn-gold" target="_blank" rel="noopener" href="${esc(s.joinUrl)}">ابدأ الحصة 🎥</a>
+          <button class="btn btn-small" data-copy="${esc(abs(s.studentUrl))}">نسخ رابط الطالبة</button>
           <a class="btn btn-small btn-wa" target="_blank" rel="noopener" href="${waRemind(o, s)}">تذكير</a>
         </div></div>
       <div class="r2"><input type="text" data-prog placeholder="وصلت لفين؟ (مثال: سورة النبأ من 1 إلى 20)" value="${esc(s.progress || "")}"><button class="btn btn-small btn-gold" data-act="savesess">حفظ</button></div>
@@ -396,7 +403,8 @@ function tabSettings() {
     <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem;margin-bottom:10px">الدفع والتواصل</h3>
     <div class="row">${inp("instapay", "حساب انستا باي (رقم أو عنوان)", s.instapay, "text", 'class="ltr" maxlength="80"')}${inp("vodafone", "رقم فودافون كاش", s.vodafone, "tel", 'maxlength="40"')}</div>
     ${inp("whatsapp", "رقم واتساب المعلم (للتواصل مع الطلاب)", s.whatsapp, "tel", 'maxlength="30"', "بيظهر زرار واتساب في الموقع.")}
-    ${inp("fixedMeetingLink", "رابط اجتماع ثابت (اختياري)", s.fixedMeetingLink, "url", 'class="ltr"', "لو سيبته فاضي الموقع بيعمل غرفة Jitsi سرية لكل حجز. لو كتبت رابط Google Meet أو Zoom هيتستخدم للكل.")}
+    <div class="field"><label>نظام الاجتماع</label><select id="meetingProvider"><option value="builtin" ${s.meetingProvider === "builtin" ? "selected" : ""}>غرفة الموقع الخاصة (أنت بتتحكم فيها)</option><option value="jitsi" ${s.meetingProvider === "jitsi" ? "selected" : ""}>Jitsi أو رابط خارجي (احتياطي)</option></select><div class="hint">لو اخترت الاحتياطي: لو كتبت رابط Google Meet تحت هيتستخدم للكل، وإلا بيتعمل Jitsi سري لكل حجز.</div></div>
+    ${inp("fixedMeetingLink", "رابط اجتماع ثابت للاحتياطي (اختياري)", s.fixedMeetingLink, "url", 'class="ltr"')}
   </div>
   <div class="card" style="margin-top:16px">
     <h3 style="color:var(--gold-light);font-family:Amiri,serif;font-size:1.3rem;margin-bottom:10px">الموقع</h3>
@@ -429,7 +437,7 @@ function tabSettings() {
     const body = {
       bookingOpen: $("#bookingOpen").checked, trialEnabled: $("#trialEnabled").checked, discountRules: disc,
     };
-    for (const id of ["trialPrice", "trialNote", "priceIndividual", "priceGroup", "sessionMinutes", "groupMinutes", "groupCapacity", "currency", "instapay", "vodafone", "whatsapp", "fixedMeetingLink", "siteName", "teacherName", "tagline", "cancelHours", "holdHours", "daysAhead", "minNoticeHours", "maxSessions", "joinEarlyMinutes"]) body[id] = g(id);
+    for (const id of ["trialPrice", "trialNote", "priceIndividual", "priceGroup", "sessionMinutes", "groupMinutes", "groupCapacity", "currency", "instapay", "vodafone", "whatsapp", "fixedMeetingLink", "meetingProvider", "siteName", "teacherName", "tagline", "cancelHours", "holdHours", "daysAhead", "minNoticeHours", "maxSessions", "joinEarlyMinutes"]) body[id] = g(id);
     try { await A("/api/admin/settings", { method: "POST", body }); toast("تم حفظ الإعدادات ✓"); await loadData(true); }
     catch (e) { toast(e.message, true); }
   };
